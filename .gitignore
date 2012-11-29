@@ -1,5 +1,9 @@
 *.py[cod]
 
+config.example.json
+.project
+.pydevproject
+
 # C extensions
 *.so
 
