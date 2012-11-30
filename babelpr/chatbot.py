@@ -151,12 +151,18 @@ class ChatBot(object):
         
         command_format = self.parseCommandFormat(message)
         if command_format is not None:
+            command_match = False
             if self._triggered_commands.has_key(command_format['trigger']):
                 command = self._triggered_commands[command_format['trigger']]
                 assert isinstance(command, TriggeredCommand)
+                command_match = True
                 response = command.processCommand(message, command_format['arguments'])
                 if response is not None:
                     return response
+                
+            if not command_match:
+                #return "Unknown command: '%s'" % command_format['trigger']
+                pass
         
         return None
     
