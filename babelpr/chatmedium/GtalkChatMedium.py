@@ -9,6 +9,7 @@ import babelpr
 
 class GtalkChatMedium(AbstractChatMedium):
     _xmpp = None
+    group_channel = None
     
     def __init__(self, chatbot, config):
         super(GtalkChatMedium, self).__init__(chatbot, config)
@@ -18,7 +19,7 @@ class GtalkChatMedium(AbstractChatMedium):
         
         while True:
             Logger.debug(self, "Starting GtalkBot")
-            self._xmpp = GtalkBot(self._config['username'], self._config['password'], self._config['chat_name'])
+            self._xmpp = GtalkBot(self._config['username'], self._config['password'], self)
             self._xmpp.register_plugin('xep_0030') # Service Discovery
             self._xmpp.register_plugin('xep_0045') # Multi-User Chat
             self._xmpp.register_plugin('xep_0249') # Direct MUC Invitations
@@ -54,6 +55,21 @@ class GtalkChatMedium(AbstractChatMedium):
         if not (msg['type'] in ('chat', 'normal')):
             return
         
+        if(msg['body'] == self._config['invite_trigger']):
+            if self.group_channel is None:
+                #self.group_channel = "babelrusechat"+str(random.randint(0,100000))
+                response_message = Message.Message(self.getMediumName(), "individual", msg['from'], None, "Sorry, I'm not in a channel and I don't know how to make them")
+                self.sendMessage(response_message)
+                
+                
+            room = "%s" % self.group_channel
+            jid = "%s" % msg['from']
+            reason = "Join up!"
+            mfrom = self._xmpp.boundjid
+            self._xmpp.plugin['xep_0045'].invite(room, jid, reason, mfrom)
+            
+            
+        
         message = Message.Message(self.getMediumName(), "individual", msg['from'], msg['from'], msg['body'])
         self._chatbot.receiveMessage(message)
         
@@ -64,8 +80,14 @@ class GtalkChatMedium(AbstractChatMedium):
             return
         
         parts = ("%s" % msg['from']).split('/')
-        channel_id = parts[0]
-        msg_from = parts[1]
+        if len(parts) > 1:
+            channel_id = parts[0]
+            msg_from = parts[1]
+        else:
+            channel_id = parts[0]
+            msg_from = parts[0]
+            
+        self.setGroupChannel(channel_id)
         
         if(msg_from == self._config['chat_name']):
             Logger.debug(self, "Group message from self ignored")
@@ -74,23 +96,28 @@ class GtalkChatMedium(AbstractChatMedium):
         message = Message.Message(self.getMediumName(), "group", channel_id, msg_from, msg['body'])
         self._chatbot.receiveMessage(message)
         
+    def setGroupChannel(self, channel):
+        if channel != self.group_channel:
+            Logger.info(self, "Changing main group channel to '%s'" % channel)
+            self.group_channel = channel
+        
 
 class GtalkBot(ClientXMPP):
-    _chat_name = None
+    _chat_medium = None
 
-    def __init__(self, jid, password, chat_name):
+    def __init__(self, jid, password, chat_medium):
         ClientXMPP.__init__(self, jid, password)
-        self._chat_name = chat_name
+        self._chat_medium = chat_medium
         self.add_event_handler("session_start", self.session_start)
         self.add_event_handler("groupchat_invite", self.onChatInvite)
         self.add_event_handler("groupchat_direct_invite", self.onChatInvite)
-
 
     def session_start(self, event):
         self.send_presence()
         self.get_roster()
         
     def onChatInvite(self, event):
+        self._chat_medium.setGroupChannel(event['from'])
         self.plugin['xep_0045'].joinMUC(event['from'],
-                                    self._chat_name,
+                                    self._chat_medium._config['chat_name'],
                                     wait=True)

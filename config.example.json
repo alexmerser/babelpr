@@ -10,7 +10,8 @@
 		"gtalk": {
 			"username": "someuser@gmail.com",
 			"password": "yourpassword",
-			"chat_name": "Babel"
+			"chat_name": "Babel",
+			"invite_trigger": "dicks"
 		}
 	
 	}
