@@ -28,10 +28,10 @@ class SummonerMatchStats(object):
         if self.kills is None:
             return "Unknown"
         
-        message = ("%(summoner_name)s last played %(champion)s %(how_long_ago)s in a %(game_type)s game. " + \
-        "They %(victory_text_past)s in %(duration)s " + \
-        "with k/d/a of %(kills)s/%(deaths)s/%(assists)s " + \
-        "and %(cs)s CS, %(gold)s gold") % {
+        message = ("%(summoner_name)s played %(champion)s %(how_long_ago)s in %(game_type)s, " + \
+        "%(victory_text)s in %(duration)s " + \
+        "with k/d/a %(kills)s/%(deaths)s/%(assists)s " + \
+        "with %(cs)s CS and %(gold)s gold") % {
             'summoner_name': self.summoner_name,
             'champion': self.champion,
             'how_long_ago': self.how_long_ago,
@@ -41,7 +41,7 @@ class SummonerMatchStats(object):
             'assists': self.assists,
             'cs': self.cs,
             'gold': self.gold,
-            'victory_text_past': "won" if self.win else "lost",
+            'victory_text': "winning" if self.win else "losing",
             'duration': self.duration
         }
         
