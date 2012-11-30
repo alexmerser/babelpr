@@ -1,0 +1,17 @@
+{
+	"LoggingLevel": "DEBUG",
+	"command_trigger_formats": [
+		"#(?P<trigger>[^ ]+) *(?P<arguments>.*)",
+		"(?P<trigger>[^ ]+): *(?P<arguments>.*)"
+	],
+
+	"ChatMediums": {
+	
+		"gtalk": {
+			"username": "someuser@gmail.com",
+			"password": "yourpassword",
+			"chat_name": "Babel"
+		}
+	
+	}
+}

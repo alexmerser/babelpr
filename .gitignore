@@ -1,6 +1,6 @@
 *.py[cod]
 
-config.example.json
+config.json
 .project
 .pydevproject
 
