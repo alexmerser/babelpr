@@ -3,6 +3,7 @@
 config.json
 .project
 .pydevproject
+cookies.lwp
 
 # C extensions
 *.so

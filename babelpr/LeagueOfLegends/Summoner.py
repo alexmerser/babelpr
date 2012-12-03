@@ -22,6 +22,9 @@ class Summoner(object):
     
     def getElo(self, elo_type):
         return None
+    
+    def getWinsLosses(self, queue_type):
+        return {'wins': None, 'losses': None} 
 
     def getElos(self):
         elos = {}
