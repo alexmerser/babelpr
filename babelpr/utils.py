@@ -8,7 +8,7 @@ import urllib
 
 def stripHTML(html_string):
     stripper = Stripper()
-    html_string = html_string.replace("&#39;","'").replace("&quot;","\"").replace("&lt;","<").replace("&gt;",">").replace("<br />"," ").replace("\n","").replace("\r","").replace("\t"," ")
+    html_string = html_string.replace("&#39;","'").replace("&quot;","\"").replace("&lt;","<").replace("&gt;",">").replace("<br />"," ").replace("\n","").replace("\r","").replace("\t"," ").replace("<br>"," ").replace("<br/>"," ")
     return stripper.strip(html_string)
 
 def getWebpage(url, txdata=None):
