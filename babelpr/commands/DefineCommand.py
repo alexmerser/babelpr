@@ -8,6 +8,10 @@ import re
 class DefineCommand(TriggeredCommand):
     triggers = ['define']
     
+    name = 'define'
+    description = "Checks various online dictionaries to define your word."
+    syntax = "#define [mw#|google#|urban#] WORD"
+    
     def processCommand(self, message, arguments):
         assert isinstance(message, Message.Message)
         assert isinstance(self._chatbot, ChatBot)
@@ -125,8 +129,8 @@ class DefineCommand(TriggeredCommand):
             c = c.replace('  ',' ')
             c = c.replace('  ',' ')
             c = c.replace('  ',' ')
-            if len(c) > 150:
-                c = c[:150]+"..."
+            if len(c) > 300:
+                c = c[:300]+"..."
             return [True,c]
         else:
             return [False,""]

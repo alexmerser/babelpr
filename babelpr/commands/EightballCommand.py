@@ -2,6 +2,10 @@ from babelpr.commands import RandomResponseCommand
 
 class EightballCommand(RandomResponseCommand):
     triggers = ['8ball', 'eightball']
+    name = '8ball'
+    description = "Looks to the magic 8 ball to answer your question."
+    syntax = "#8ball [QUESTION]"
+    
     _responses =  ["Signs point to yes",
              "Yes",
              "Reply hazy, try again",

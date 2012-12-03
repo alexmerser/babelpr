@@ -7,6 +7,9 @@ from babelpr.LeagueOfLegends.LolkingSummoner import LolkingSummoner
 
 class EloCommand(TriggeredCommand):
     triggers = ['elo']
+    name = '8elo'
+    description = "Fetches the elo for a given summoner"
+    syntax = "#elo [5v5_solo|5v5_team|3v3_team] summoner"
 
     def processCommand(self, message, arguments):
         assert isinstance(message, Message.Message)
@@ -32,7 +35,7 @@ class EloCommand(TriggeredCommand):
         current_key = 'ELO_%s_CURRENT' % elo_type
         max_key = 'ELO_%s_MAX' % elo_type
         if not Summoner.ELO_TYPES.has_key(current_key):
-            return "Invalid syntax.  Usage: #elo [5v5_solo|5v5_team|3v3_team] summoner"
+            return "Invalid syntax.  Usage: %s" % self.syntax
 
         try:
             summoner = LolkingSummoner(summoner_name)

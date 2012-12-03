@@ -6,6 +6,10 @@ import sqlite3
 
 class AddCommand(TriggeredCommand):
     triggers = ['add']
+    
+    name = 'add'
+    description = 'Adds a response to certain commands'
+    syntax = '#add DATABASE RESPONSE'
 
     def processCommand(self, message, arguments):
         assert isinstance(message, Message.Message)
