@@ -40,41 +40,49 @@ class LolstatusCommand(TriggeredCommand):
             
             if name.lower() == summoner_name:
                 summoner_resource = main_resource
+                summoner_name = name
             
         if summoner_resource is None:
             return "Summoner '%s' is offline" % arguments
         
         if not summoner_resource.has_key('status'):
-            return "Summoner '%s' is online, but status is unknown" % arguments
+            return "Summoner '%s' is online, but status is unknown" % summoner_name
         
         try:
             xml = summoner_resource['status']
             doc = minidom.parseString(xml)
         except:
-            return "Summoner '%s' is online, but I was unable to parse their status" % arguments
+            return "Summoner '%s' is online, but I was unable to parse their status" % summoner_name
+        
+        status = summoner_name
         
         gameStatus = getTagValue(doc, 'gameStatus')
         if gameStatus is None:
-            gameStatusText = " has no game status"
+            status += " has no game status"
         else:
-            gameStatusText = " is %s" % gameStatus
-
-
-        gameQueueType = getTagValue(doc, 'gameQueueType')
-        if gameQueueType is None or gameQueueType == "NONE":
-            gameQueueTypeText = ""
-        else:
-            gameQueueTypeText = " of type %s" % gameQueueType
+            inGame = False
+            if gameStatus == "inGame":
+                gameStatus = "in game"
+                inGame = True
+            elif gameStatus == "outOfGame":
+                gameStatus = "out of game"
+            
+            status += " is %s" % gameStatus
+            
+            if inGame:
+                gameQueueType = getTagValue(doc, 'gameQueueType')
+                if gameQueueType is not None and gameQueueType != "NONE":
+                    status += " of type %s" % gameQueueType
+                
+                skinname = getTagValue(doc, 'skinname')
+                if skinname is not None and len(skinname) > 0:
+                    status += " playing as %s" % skinname
         
         statusMsg = getTagValue(doc, 'statusMsg')
-        if statusMsg is None:
-            statusMsgText = ""
-        else:
-            statusMsgText = " with status of \"%s\"" % statusMsg
+        if statusMsg is not None:
+            status += " with status of \"%s\"" % statusMsg
         
         
-        
-        status = "%s%s%s%s" % (arguments, gameStatusText, gameQueueTypeText, statusMsgText)
         
         return status
         
