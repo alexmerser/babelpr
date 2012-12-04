@@ -2,6 +2,8 @@ from babelpr.commands import TriggeredCommand
 from babelpr import Message
 from babelpr.chatbot import ChatBot
 from xml.dom import minidom
+import time
+import datetime
 
 
 class LolstatusCommand(TriggeredCommand):
@@ -64,6 +66,10 @@ class LolstatusCommand(TriggeredCommand):
             if gameStatus == "inGame":
                 gameStatus = "in game"
                 inGame = True
+            if gameStatus == "inQueue":
+                gameStatus = "in queue"
+            if gameStatus == "championSelect":
+                gameStatus = "in champion select"
             elif gameStatus == "outOfGame":
                 gameStatus = "out of game"
             
@@ -77,6 +83,35 @@ class LolstatusCommand(TriggeredCommand):
                 skinname = getTagValue(doc, 'skinname')
                 if skinname is not None and len(skinname) > 0:
                     status += " playing as %s" % skinname
+
+                timeStamp = getTagValue(doc, 'timeStamp')
+                if timeStamp is not None:
+                    try:
+                        duration = time.time() - int(timeStamp) / 1000
+                        sec = datetime.timedelta(seconds=duration)
+                        d = datetime.datetime(1,1,1) + sec
+                        parts = []
+                        if d.day - 1 == 1:
+                            parts.append("%s day" % (d.day - 1))
+                        elif d.day - 1 > 1:
+                            parts.append("%s days" % (d.day - 1))
+                            
+                        if d.hour == 1:
+                            parts.append("%s hour" % (d.hour))
+                        elif d.hour > 1:
+                            parts.append("%s hours" % (d.hour))
+                        
+                        if d.minute == 1:  
+                            parts.append("%s min" % (d.minute))
+                        elif d.minute > 1:
+                            parts.append("%s mins" % (d.minute))
+                            
+                        if len(parts) > 0:
+                            status += " for %s" % ", ".join(parts)
+                        
+                    except:
+                        pass
+                
         
         statusMsg = getTagValue(doc, 'statusMsg')
         if statusMsg is not None:
