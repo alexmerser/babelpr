@@ -1,17 +1,34 @@
 {
 	"LoggingLevel": "DEBUG",
 	"command_trigger_formats": [
-		"#(?P<trigger>[^ ]+) *(?P<arguments>.*)",
-		"(?P<trigger>[^ ]+): *(?P<arguments>.*)"
+		"^#(?P<trigger>[^ ]+) *(?P<arguments>.*)$",
+		"^(?P<trigger>[^ ]+): *(?P<arguments>.*)$"
 	],
 
 	"ChatMediums": {
 	
-		"gtalk": {
-			"username": "someuser@gmail.com",
-			"password": "yourpassword",
-			"chat_name": "Babel",
-			"invite_trigger": "dicks"
+		"gchat": {
+			"medium": "jabber",
+			"username": "youraccount@gmail.com",
+			"password": "yourpass",
+			"server": "talk.google.com",
+			"port": 5222,
+			"chat_name": "Yourname",
+			"invite_triggers": ["dicks"],
+			"channels": []
+		},
+	
+		
+		"lol": {
+			"medium": "jabber",
+			"username": "yoursummoner@pvp.net",
+			"password": "AIR_yourpassword",
+			"server": "chat.na1.lol.riotgames.com",
+			"port": 5223,
+			"chat_name": "yourname",
+			"invite_triggers": [],
+			"use_ssl": true,
+			"channels": []
 		}
 	
 	}

@@ -3,7 +3,7 @@ from babelpr import chatmedium, Message
 from babelpr.chatmedium import AbstractChatMedium
 from threading import Thread
 import time
-from babelpr.commands import GreedyCommand, Command, TriggeredCommand
+from babelpr.commands import GreedyCommand, TriggeredCommand
 import os
 from babelpr.globals import BabelGlobals
 import re
@@ -48,24 +48,26 @@ class ChatBot(object):
 
     def loadMediums(self):
         mediums = {}
-        for k,v in self._config['ChatMediums'].iteritems():
-            assert isinstance(k, unicode)
-            k = k.lower()
+        for alias,config in self._config['ChatMediums'].iteritems():
+            assert isinstance(alias, unicode)
             
-            medium_classname = k.title() + "ChatMedium"
+            if not config.has_key('medium'):
+                raise InvalidChatMedium(alias)
+            
+            medium_classname = config['medium'].title() + "ChatMedium"
             try:
                 importmodule = __import__("babelpr.chatmedium."+medium_classname, medium_classname)
             except ImportError:
-                raise UnknownChatMedium(k)
+                raise UnknownChatMedium(config['medium'])
             
             try:
                 chatmedium = getattr(importmodule, "chatmedium")
                 mediumclass = getattr(getattr(chatmedium, medium_classname), medium_classname)
             except AttributeError:
-                raise InvalidChatMedium(k)
+                raise InvalidChatMedium(alias)
                 
-            inst = mediumclass(self, v)
-            mediums[k] = inst
+            inst = mediumclass(self, alias, config)
+            mediums[alias] = inst
 
         if len(mediums.keys()) == 0:
             raise NoMediumsConfigured
@@ -131,7 +133,7 @@ class ChatBot(object):
         # Logger.debug(self, "All mediums healthy")
         
     def sendMessage(self, message):
-        self._mediums[message.medium].sendMessage(message)
+        self._mediums[message.medium_alias].sendMessage(message)
         
     def receiveMessage(self, message):
         assert isinstance(message, Message.Message)
@@ -139,7 +141,7 @@ class ChatBot(object):
         
         response = self.checkCommandResponse(message)
         if response is not None:
-            response_message = Message.Message(message.medium, message.channel_type, message.channel_id, None, response)
+            response_message = Message.Message(message.medium_alias, message.medium_type, message.channel_type, message.channel_id, None, response)
             self.sendMessage(response_message)
             
     def checkCommandResponse(self, message):
