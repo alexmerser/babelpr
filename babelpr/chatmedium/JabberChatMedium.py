@@ -1,3 +1,5 @@
+from sleekxmpp.xmlstream import register_stanza_plugin, ElementBase, JID, ET
+
 from babelpr.chatmedium import AbstractChatMedium
 from babelpr.logger import Logger
 import sleekxmpp.stanza.message
@@ -6,10 +8,14 @@ import time
 from sleekxmpp import ClientXMPP
 from babelpr import Message
 import babelpr
+import re
 
 class JabberChatMedium(AbstractChatMedium, ClientXMPP):
     _xmpp = None
     _last_group_channel = None
+    
+    cdata_pattern = '^<!\[CDATA\[(.*)\]\]>$'
+    cdata_re = lastmatch_re = re.compile(cdata_pattern,re.MULTILINE|re.DOTALL)
     
     def start(self):
         super(JabberChatMedium, self).start()
@@ -53,7 +59,12 @@ class JabberChatMedium(AbstractChatMedium, ClientXMPP):
         if not (msg['type'] in ('chat', 'normal')):
             return
         
-        if(msg['body'] in self._config['invite_triggers']):
+        body = msg['body']
+        matches = self.cdata_re.findall(body)
+        if len(matches) > 0:
+            body = matches[0]
+        
+        if(body in self._config['invite_triggers']):
             if self._last_group_channel is None:
                 response_message = Message.Message(self._alias, self.getMediumName(), "individual", msg['from'], None, "Sorry, I'm not in a channel and I don't know how to make them")
                 self.sendMessage(response_message)
@@ -76,6 +87,12 @@ class JabberChatMedium(AbstractChatMedium, ClientXMPP):
         if not (msg['type'] in ('groupchat')):
             return
         
+        body = msg['body']
+        matches = self.cdata_re.findall(body)
+        if len(matches) > 0:
+            body = matches[0]
+        
+        
         parts = ("%s" % msg['from']).split('/')
         if len(parts) > 1:
             channel_id = parts[0]
@@ -90,7 +107,7 @@ class JabberChatMedium(AbstractChatMedium, ClientXMPP):
             #Logger.debug(self, "Group message from self ignored")
             return
         
-        message = Message.Message(self._alias, self.getMediumName(), "group", channel_id, msg_from, msg['body'])
+        message = Message.Message(self._alias, self.getMediumName(), "group", channel_id, msg_from, body)
         self._chatbot.receiveMessage(message)
         
     def setGroupChannel(self, channel):
@@ -142,9 +159,7 @@ class JabberBot(ClientXMPP):
         
         for channel in self._chat_medium._config['channels']:
             Logger.info(self._chat_medium, "Attempting to join '%s'" % channel)
-            self.plugin['xep_0045'].joinMUC(channel,
-                                    self._chat_medium._config['chat_name'],
-                                    wait=True)
+            self.plugin['xep_0045'].joinMUC(channel, self._chat_medium._config['chat_name'], wait=True, pfrom=self.boundjid)
         
     def onChatInvite(self, event):
         self._chat_medium.setGroupChannel(event['from'])
