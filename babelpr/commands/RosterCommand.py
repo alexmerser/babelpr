@@ -21,10 +21,11 @@ class RosterCommand(TriggeredCommand):
         medium = self._chatbot._mediums[medium_alias]
         roster = medium.getRoster()
         users = []
-        for id,name in roster.iteritems():
-            users.append(name)
+        for id,data in roster.iteritems():
+            specialChar = '*' if data['special'] else ''
+            users.append(unicode(data['name'] + specialChar))
             
-        users.sort()
+        users.sort(key=unicode.lower)
         
         return ", ".join(users)
             

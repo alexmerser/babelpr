@@ -9,6 +9,8 @@ from sleekxmpp import ClientXMPP
 from babelpr import Message
 import babelpr
 import re
+from xml.dom import minidom
+from babelpr.commands.LolstatusCommand import getTagValue
 
 class JabberChatMedium(AbstractChatMedium, ClientXMPP):
     _xmpp = None
@@ -121,12 +123,33 @@ class JabberChatMedium(AbstractChatMedium, ClientXMPP):
     def getRoster(self):
         roster = {}
         my_id = self.getOwnId()
+        rooms = self._xmpp.plugin['xep_0045'].rooms
         
+        
+        for room_jid in rooms:
+            members = rooms[room_jid]
+            for prettyName,member_data in members.iteritems():
+                if not member_data.has_key('jid'):
+                    continue
+                
+                if member_data['jid'] == self._xmpp.boundjid:
+                    continue
+                
+                jid = ('%s' % member_data['jid']).split('/')[0]
+                
+                roster[jid] = {
+                    'name': prettyName,
+                    'special': False
+                }
+        
+                
         for jid in self._xmpp.client_roster:
             if jid == my_id:
                 continue
             
-            user = self._xmpp.client_roster[jid]
+            if jid in rooms:
+                continue
+            
             presence = self._xmpp.client_roster.presence(jid)
             main_resource = None
             for name,resource, in presence.iteritems():
@@ -136,12 +159,40 @@ class JabberChatMedium(AbstractChatMedium, ClientXMPP):
             if main_resource is None:
                 continue
             
-            name = user['name'] if len(user['name']) > 0 else jid 
-            roster[jid] = name
-        
+            isSpecial = False
+            
+            # todo: abstract this
+            try:
+                xml = main_resource['status']
+                doc = minidom.parseString(xml)
+                gameStatus = getTagValue(doc, 'gameStatus')
+                if gameStatus == "inGame":
+                    isSpecial = True
+            except:
+                pass
+            
+            
+            prettyName = self.getPrettyName(jid)
+            if prettyName is None:
+                prettyName = jid  
+            
+            roster[jid] = {
+              'name': prettyName,
+              'special': isSpecial
+            }
+
         
         return roster
         
+    def getPrettyName(self, id):
+        if id not in self._xmpp.client_roster:
+            return id
+        
+        user = self._xmpp.client_roster[id]
+        if len(user['name']) == 0:
+            return id
+         
+        return user['name']
 
 class JabberBot(ClientXMPP):
     _chat_medium = None

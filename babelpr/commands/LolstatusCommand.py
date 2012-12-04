@@ -28,7 +28,7 @@ class LolstatusCommand(TriggeredCommand):
         summoner_resource = None
         online = self._chatbot._mediums[medium_alias].getRoster()
         
-        for jid,name in online.iteritems():
+        for jid,data in online.iteritems():
             presence = roster.presence(jid)
             main_resource = None
             for resource_id,resource, in presence.iteritems():
@@ -38,9 +38,9 @@ class LolstatusCommand(TriggeredCommand):
             if main_resource is None:
                 continue
             
-            if name.lower() == summoner_name:
+            if data['name'].lower() == summoner_name:
                 summoner_resource = main_resource
-                summoner_name = name
+                summoner_name = data['name']
             
         if summoner_resource is None:
             return "Summoner '%s' is offline" % arguments
