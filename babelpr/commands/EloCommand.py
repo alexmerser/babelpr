@@ -7,7 +7,7 @@ from babelpr.LeagueOfLegends.LolkingSummoner import LolkingSummoner
 
 class EloCommand(TriggeredCommand):
     triggers = ['elo']
-    name = '8elo'
+    name = 'elo'
     description = "Fetches the elo for a given summoner"
     syntax = "#elo [5v5_solo|5v5_team|3v3_team] summoner"
 
