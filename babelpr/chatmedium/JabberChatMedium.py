@@ -55,14 +55,14 @@ class JabberChatMedium(AbstractChatMedium, ClientXMPP):
         
         if(msg['body'] in self._config['invite_triggers']):
             if self._last_group_channel is None:
-                response_message = Message.Message(self.getMediumName(), "individual", msg['from'], None, "Sorry, I'm not in a channel and I don't know how to make them")
+                response_message = Message.Message(self._alias, self.getMediumName(), "individual", msg['from'], None, "Sorry, I'm not in a channel and I don't know how to make them")
                 self.sendMessage(response_message)
                 
                 
             room = "%s" % self._last_group_channel
             jid = "%s" % msg['from']
             reason = "Join up!"
-            mfrom = self._xmpp.boundjid()
+            mfrom = self._xmpp.boundjid
             self._xmpp.plugin['xep_0045'].invite(room, jid, reason, mfrom)
             
             
