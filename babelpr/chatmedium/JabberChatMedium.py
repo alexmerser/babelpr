@@ -11,13 +11,14 @@ import babelpr
 import re
 from xml.dom import minidom
 from babelpr.commands.LolstatusCommand import getTagValue
+from babelpr.utils import stripHTML
 
 class JabberChatMedium(AbstractChatMedium, ClientXMPP):
     _xmpp = None
     _last_group_channel = None
     
     cdata_pattern = '^<!\[CDATA\[(.*)\]\]>$'
-    cdata_re = lastmatch_re = re.compile(cdata_pattern,re.MULTILINE|re.DOTALL)
+    cdata_re = re.compile(cdata_pattern,re.MULTILINE|re.DOTALL)
     
     def start(self):
         super(JabberChatMedium, self).start()
@@ -128,14 +129,36 @@ class JabberChatMedium(AbstractChatMedium, ClientXMPP):
         
         for room_jid in rooms:
             members = rooms[room_jid]
-            for prettyName,member_data in members.iteritems():
-                if not member_data.has_key('jid'):
+            for room_name,member_data in members.iteritems():
+                jid = None
+                nick = None
+                
+                if member_data.has_key('jid') and member_data['jid'] is not None and member_data['jid'] != '':
+                    jid = member_data['jid']
+                    
+                if member_data.has_key('nick') and member_data['nick'] is not None and member_data['nick'] != '':
+                    nick = member_data['nick']
+                # 6b33dc6dde12645b
+                
+                if jid is None and nick is None:
                     continue
                 
                 if member_data['jid'] == self._xmpp.boundjid:
                     continue
                 
-                jid = ('%s' % member_data['jid']).split('/')[0]
+                if jid is None and nick is not None:
+                    jid = nick
+                    try:
+                        alt_nick = member_data['alt_nick']
+                        prettyName = alt_nick.values['nick']
+                    except:
+                        prettyName = alt_nick
+                        
+                else:
+                    jid = ('%s' % member_data['jid']).split('/')[0]
+                    prettyName = self.getPrettyName(jid)
+                    if prettyName == jid:
+                        prettyName = room_name
                 
                 roster[jid] = {
                     'name': prettyName,
@@ -185,6 +208,9 @@ class JabberChatMedium(AbstractChatMedium, ClientXMPP):
         return roster
         
     def getPrettyName(self, id):
+        if self._xmpp._pretty_names.has_key(id):
+            return self._xmpp._pretty_names[id]
+        
         if id not in self._xmpp.client_roster:
             return id
         
@@ -196,6 +222,10 @@ class JabberChatMedium(AbstractChatMedium, ClientXMPP):
 
 class JabberBot(ClientXMPP):
     _chat_medium = None
+    _pretty_names = {}
+    
+    prettyname_pattern = 'jid="(?P<jid>.*?)" role.*\<nick xmlns="http:\/\/jabber\.org\/protocol\/nick"\>(?P<nick>.*?)\<\/nick\>'
+    prettyname_re = re.compile(prettyname_pattern,re.MULTILINE|re.DOTALL)
 
     def __init__(self, jid, password, chat_medium):
         ClientXMPP.__init__(self, jid, password)
@@ -203,6 +233,7 @@ class JabberBot(ClientXMPP):
         self.add_event_handler("session_start", self.session_start)
         self.add_event_handler("groupchat_invite", self.onChatInvite)
         self.add_event_handler("groupchat_direct_invite", self.onChatInvite)
+        self.add_event_handler("changed_status", self.onChangedStatus)
 
     def session_start(self, event):
         self.send_presence()
@@ -211,6 +242,22 @@ class JabberBot(ClientXMPP):
         for channel in self._chat_medium._config['channels']:
             Logger.info(self._chat_medium, "Attempting to join '%s'" % channel)
             self.plugin['xep_0045'].joinMUC(channel, self._chat_medium._config['chat_name'], wait=True, pfrom=self.boundjid)
+        
+    def onChangedStatus(self, event):
+        event_str = "%s" % event
+        
+        if event_str.find('b0684310a30e9700') > 0:
+            print event_str
+        
+        if event_str.find('<nick') > 0:
+            matches = self.prettyname_re.search(event_str)
+            if matches is None:
+                return
+            
+            group = matches.groupdict()
+            jid = group['jid'].split('/')[0]
+            self._pretty_names[jid] = group['nick']
+                
         
     def onChatInvite(self, event):
         self._chat_medium.setGroupChannel(event['from'])
