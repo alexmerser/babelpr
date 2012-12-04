@@ -21,7 +21,13 @@ class RosterCommand(TriggeredCommand):
         medium = self._chatbot._mediums[medium_alias]
         roster = medium.getRoster()
         users = []
+        seen_users = []
         for id,data in roster.iteritems():
+            plain_name = "%s" % data['name']
+            if plain_name in seen_users:
+                continue
+            seen_users.append(plain_name)
+            
             specialChar = '*' if data['special'] else ''
             users.append(unicode(data['name'] + specialChar))
             
