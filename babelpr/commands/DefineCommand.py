@@ -12,7 +12,7 @@ class DefineCommand(TriggeredCommand):
     description = "Checks various online dictionaries to define your word."
     syntax = "#define [mw#|google#|urban#] WORD"
     
-    def processCommand(self, message, arguments):
+    def processCommand(self, message, trigger, arguments):
         assert isinstance(message, Message.Message)
         assert isinstance(self._chatbot, ChatBot)
         

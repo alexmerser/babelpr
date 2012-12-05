@@ -8,7 +8,7 @@ class HelpCommand(TriggeredCommand):
     description = "Provides help for commands that are available"
     syntax = "#help [COMMAND]"
 
-    def processCommand(self, message, arguments):
+    def processCommand(self, message, trigger, arguments):
         assert isinstance(message, Message.Message)
         assert isinstance(self._chatbot, ChatBot)
         

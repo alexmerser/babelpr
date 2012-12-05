@@ -12,7 +12,7 @@ class LastCommand(TriggeredCommand):
     description = "Tells you info about the last game a summoner played"
     syntax = "#last SUMMONERNAME"
     
-    def processCommand(self, message, arguments):
+    def processCommand(self, message, trigger, arguments):
         assert isinstance(message, Message.Message)
         assert isinstance(self._chatbot, ChatBot)
         

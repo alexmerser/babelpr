@@ -158,7 +158,7 @@ class ChatBot(object):
                 command = self._triggered_commands[command_format['trigger']]
                 assert isinstance(command, TriggeredCommand)
                 command_match = True
-                response = command.processCommand(message, command_format['arguments'])
+                response = command.processCommand(message, command_format['trigger'], command_format['arguments'])
                 if response is not None:
                     return response
                 

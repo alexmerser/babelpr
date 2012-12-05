@@ -11,7 +11,7 @@ class AddCommand(TriggeredCommand):
     description = 'Adds a response to certain commands'
     syntax = '#add DATABASE RESPONSE'
 
-    def processCommand(self, message, arguments):
+    def processCommand(self, message, trigger, arguments):
         assert isinstance(message, Message.Message)
         assert isinstance(self._chatbot, ChatBot)
         

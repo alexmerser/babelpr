@@ -12,7 +12,7 @@ class LolstatusCommand(TriggeredCommand):
     description = "Gets status of a League of Legends summoner"
     syntax = "#lolstatus SUMMONER"
 
-    def processCommand(self, message, arguments):
+    def processCommand(self, message, trigger, arguments):
         assert isinstance(message, Message.Message)
         assert isinstance(self._chatbot, ChatBot)
         

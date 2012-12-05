@@ -11,7 +11,7 @@ class EloCommand(TriggeredCommand):
     description = "Fetches the elo for a given summoner"
     syntax = "#elo [5v5_solo|5v5_team|3v3_team] summoner"
 
-    def processCommand(self, message, arguments):
+    def processCommand(self, message, trigger, arguments):
         assert isinstance(message, Message.Message)
         assert isinstance(self._chatbot, ChatBot)
         

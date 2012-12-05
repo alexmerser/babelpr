@@ -17,7 +17,7 @@ class Command(object):
     
 
 class TriggeredCommand(Command):
-    def processCommand(self, message, arguments):
+    def processCommand(self, message, trigger, arguments):
         assert isinstance(message, Message.Message)
         return None
 
@@ -45,8 +45,8 @@ class PhraseResponseCommand(GreedyCommand):
 class RandomResponseCommand(TriggeredCommand):
     _responses = []
     
-    def processCommand(self, message, arguments):
-        super(RandomResponseCommand, self).processCommand(message, arguments)
+    def processCommand(self, message, trigger, arguments):
+        super(RandomResponseCommand, self).processCommand(message, trigger, arguments)
         assert isinstance(message, Message.Message)
         
         if len(self._responses) == 0:

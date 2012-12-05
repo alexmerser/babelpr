@@ -11,7 +11,7 @@ class ReviewCommand(TriggeredCommand):
     description = "Gives you a review for a movie (from rottentomatoes.com)."
     syntax = "#review movie"
 
-    def processCommand(self, message, arguments):
+    def processCommand(self, message, trigger, arguments):
         assert isinstance(message, Message.Message)
         assert isinstance(self._chatbot, ChatBot)
 
