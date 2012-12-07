@@ -8,28 +8,31 @@
 	"ChatMediums": {
 	
 		"gchat": {
-			"medium": "jabber",
+			"medium": "gchat",
 			"username": "youraccount@gmail.com",
 			"password": "yourpass",
 			"server": "talk.google.com",
 			"port": 5222,
-			"chat_name": "Yourname",
+			"bot_nick": "botnick",
 			"invite_triggers": ["dicks"],
-			"channels": []
+			"tunnels": {
+				"guild": ["^.*@groupchat.google.com$"]
+			}
 		},
-	
+
 		
 		"lol": {
 			"medium": "jabber",
-			"username": "yoursummoner@pvp.net",
-			"password": "AIR_yourpassword",
+			"username": "youraccount@pvp.net",
+			"password": "AIR_yourpass",
 			"server": "chat.na1.lol.riotgames.com",
 			"port": 5223,
-			"chat_name": "yourname",
-			"invite_triggers": [],
+			"bot_nick": "botnick",
 			"use_ssl": true,
-			"channels": []
+			"channels": [],
+			"tunnels": {
+				"guild": ["^pu.*@lvl.pvp.net$"]
+			}
 		}
-	
 	}
 }

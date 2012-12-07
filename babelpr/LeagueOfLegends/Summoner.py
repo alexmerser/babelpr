@@ -12,8 +12,6 @@ class Summoner(object):
         'ELO_5V5_TEAM_MAX': 6
     }
     
-    summoner_name = None
-     
     def __init__(self, summoner_name):
         self.summoner_name = summoner_name
     

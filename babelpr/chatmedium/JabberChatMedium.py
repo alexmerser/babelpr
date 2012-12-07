@@ -1,24 +1,20 @@
-from sleekxmpp.xmlstream import register_stanza_plugin, ElementBase, JID, ET
-
 from babelpr.chatmedium import AbstractChatMedium
 from babelpr.logger import Logger
 import sleekxmpp.stanza.message
 import time
 
 from sleekxmpp import ClientXMPP
-from babelpr import Message
 import babelpr
 import re
-from xml.dom import minidom
-from babelpr.commands.LolstatusCommand import getTagValue
-from babelpr.utils import stripHTML
+from babelpr.Message import Message
 
 class JabberChatMedium(AbstractChatMedium, ClientXMPP):
-    _xmpp = None
-    _last_group_channel = None
-    
     cdata_pattern = '^<!\[CDATA\[(.*)\]\]>$'
     cdata_re = re.compile(cdata_pattern,re.MULTILINE|re.DOTALL)
+    
+    def __init__(self, chatbot, alias, config):
+        self._xmpp = None
+        AbstractChatMedium.__init__(self, chatbot, alias, config)
     
     def start(self):
         super(JabberChatMedium, self).start()
@@ -52,50 +48,20 @@ class JabberChatMedium(AbstractChatMedium, ClientXMPP):
         
         Logger.info(self, "%s sending %s message to '%s': %s" % (self._alias, message.channel_type, message.channel_id, message.body))
         
-        mtype = "chat" if message.channel_type == "individual" else "groupchat"
+        mtype = "chat" if message.channel_type == self.CHANNEL_TYPE_INDIVIDUAL else "groupchat"
         self._xmpp.send_message(message.channel_id, message.body, None, mtype)
 
-            
-    def onJabberMessage(self, msg):
+    def digestJabberMessage(self, msg):
         assert isinstance(msg, sleekxmpp.stanza.message.Message)
         
-        if not (msg['type'] in ('chat', 'normal')):
-            return
+        if not (msg['type'] in ('chat', 'normal', 'groupchat')):
+            return None
         
         body = msg['body']
         matches = self.cdata_re.findall(body)
         if len(matches) > 0:
             body = matches[0]
-        
-        if(body in self._config['invite_triggers']):
-            if self._last_group_channel is None:
-                response_message = Message.Message(self._alias, self.getMediumName(), "individual", msg['from'], None, "Sorry, I'm not in a channel and I don't know how to make them")
-                self.sendMessage(response_message)
-                
-                
-            room = "%s" % self._last_group_channel
-            jid = "%s" % msg['from']
-            reason = "Join up!"
-            mfrom = self._xmpp.boundjid
-            self._xmpp.plugin['xep_0045'].invite(room, jid, reason, mfrom)
             
-            
-        
-        message = Message.Message(self._alias, self.getMediumName(), "individual", msg['from'], msg['from'], msg['body'])
-        self._chatbot.receiveMessage(message)
-        
-    def onJabberGroupMessage(self, msg):
-        assert isinstance(msg, sleekxmpp.stanza.message.Message)
-        
-        if not (msg['type'] in ('groupchat')):
-            return
-        
-        body = msg['body']
-        matches = self.cdata_re.findall(body)
-        if len(matches) > 0:
-            body = matches[0]
-        
-        
         parts = ("%s" % msg['from']).split('/')
         if len(parts) > 1:
             channel_id = parts[0]
@@ -104,20 +70,36 @@ class JabberChatMedium(AbstractChatMedium, ClientXMPP):
             channel_id = parts[0]
             msg_from = parts[0]
             
-        self.setGroupChannel(channel_id)
+        if msg_from == self.getOwnNick() or msg_from == self._xmpp.boundjid:
+            return None
+            
+        from_nick = self._xmpp.getNick(msg_from)
+        if from_nick is None:
+            from_nick = self._xmpp.getNick(msg['from'])
+            
+        if from_nick is None:
+            from_nick = msg_from
         
-        if(msg_from == self._config['chat_name']):
-            #Logger.debug(self, "Group message from self ignored")
-            return
+        channel_type = self.CHANNEL_TYPE_GROUP if msg['type'] == 'groupchat' else self.CHANNEL_TYPE_INDIVIDUAL
         
-        message = Message.Message(self._alias, self.getMediumName(), "group", channel_id, msg_from, body)
+        message = Message(self._alias, self.getMediumName(), channel_type, channel_id, msg_from, from_nick, body)
+        return message
+        
+            
+    def onJabberMessage(self, msg):
+        message = self.digestJabberMessage(msg)
         self._chatbot.receiveMessage(message)
         
-    def setGroupChannel(self, channel):
-        if channel != self._last_group_channel:
-            Logger.info(self, "%s changing main group channel to '%s'" % (self._alias, channel))
-            self._last_group_channel = channel
-            
+    def onJabberGroupMessage(self, msg):
+        pass
+        
+    def getChannels(self):
+        rooms = self._xmpp.plugin['xep_0045'].rooms
+        channels = []
+        for room_jid in rooms:
+            channels.append(("%s" % room_jid).split('/')[0])
+        return channels
+                
     def getOwnId(self):
         return ('%s' % self._xmpp.boundjid).split('/')[0]
             
@@ -129,104 +111,89 @@ class JabberChatMedium(AbstractChatMedium, ClientXMPP):
         
         for room_jid in rooms:
             members = rooms[room_jid]
-            for room_name,member_data in members.iteritems():
-                jid = None
-                nick = None
+            for member_id,member_data in members.iteritems():
+                channel_member_jid = "%s/%s" % (room_jid, member_id)
                 
+                #try to get the jid from the room's member record
                 if member_data.has_key('jid') and member_data['jid'] is not None and member_data['jid'] != '':
                     jid = member_data['jid']
                     
-                if member_data.has_key('nick') and member_data['nick'] is not None and member_data['nick'] != '':
-                    nick = member_data['nick']
-                # 6b33dc6dde12645b
-                
-                if jid is None and nick is None:
-                    continue
-                
-                if member_data['jid'] == self._xmpp.boundjid:
-                    continue
-                
-                if jid is None and nick is not None:
-                    jid = nick
-                    try:
-                        alt_nick = member_data['alt_nick']
-                        prettyName = alt_nick.values['nick']
-                    except:
-                        prettyName = alt_nick
-                        
+                    # try to get a nick from that jid
+                    nick = self._xmpp.getNick(jid)
+                    
+                    if nick is None:
+                        # if we didn't get a nick, then try to get it from the channel ID 
+                        nick = self._xmpp.getNick(channel_member_jid)
+                    
+                    if nick is None:
+                        # if we still didn't get a nick, then fall back to the channel member_id
+                        nick = member_id
                 else:
-                    jid = ('%s' % member_data['jid']).split('/')[0]
-                    prettyName = self.getPrettyName(jid)
-                    if prettyName == jid:
-                        prettyName = room_name
+                    # no true JID found.  use the channel member JID instead
+                    # and try to parse a nick from it
+                    jid = channel_member_jid
+                    nick = self._xmpp.getNick(channel_member_jid)
+                        
+
+                # if we didn't get a nick, then just use the ID they provide to the channel
+                if nick is None or nick == channel_member_jid:
+                    nick = member_id
                 
-                roster[jid] = {
-                    'name': prettyName,
+                if jid == self._xmpp.boundjid:
+                    continue
+                
+                roster[channel_member_jid] = {
+                    'name': nick,
                     'special': False
                 }
         
                 
-        for jid in self._xmpp.client_roster:
-            if jid == my_id:
+        for node_domain in self._xmpp.client_roster:
+            if node_domain == my_id:
                 continue
             
-            if jid in rooms:
+            if node_domain in rooms:
                 continue
             
-            presence = self._xmpp.client_roster.presence(jid)
+            presence = self._xmpp.client_roster.presence(node_domain)
             main_resource = None
-            for name,resource, in presence.iteritems():
-                main_resource = resource
-                break
+            main_nick = None
+            main_jid = None
+            
+            for resource_id,resource, in presence.iteritems():
+                if main_resource is None:
+                    main_resource = resource
+                    main_jid = node_domain + '/' + resource_id
+                
+                if main_nick is None:
+                    jid = node_domain + '/' + resource_id
+                    nick = self._xmpp.getNick(jid)
+                    if nick is not None:
+                        main_jid = jid
+                        main_nick = nick
             
             if main_resource is None:
-                continue
+                continue            
             
-            isSpecial = False
+            if nick is None:
+                nick = node_domain
             
-            # todo: abstract this
-            try:
-                xml = main_resource['status']
-                doc = minidom.parseString(xml)
-                gameStatus = getTagValue(doc, 'gameStatus')
-                if gameStatus == "inGame":
-                    isSpecial = True
-            except:
-                pass
-            
-            
-            prettyName = self.getPrettyName(jid)
-            if prettyName is None:
-                prettyName = jid  
-            
-            roster[jid] = {
-              'name': prettyName,
-              'special': isSpecial
+            roster[main_jid] = {
+              'name': nick,
+              'special': False
             }
 
         
         return roster
-        
-    def getPrettyName(self, id):
-        if self._xmpp._pretty_names.has_key(id):
-            return self._xmpp._pretty_names[id]
-        
-        if id not in self._xmpp.client_roster:
-            return id
-        
-        user = self._xmpp.client_roster[id]
-        if len(user['name']) == 0:
-            return id
-         
-        return user['name']
 
 class JabberBot(ClientXMPP):
     _chat_medium = None
-    _pretty_names = {}
+    chatnick_to_nick = {}
+    jid_to_nick = {}
     
-    prettyname_pattern = 'jid="(?P<jid>.*?)" role.*\<nick xmlns="http:\/\/jabber\.org\/protocol\/nick"\>(?P<nick>.*?)\<\/nick\>'
-    prettyname_re = re.compile(prettyname_pattern,re.MULTILINE|re.DOTALL)
-
+    nick_pattern = 'from="(?P<from>.*?)".*jid="(?P<jid>.*?)" role.*\<nick xmlns="http:\/\/jabber\.org\/protocol\/nick"\>(?P<nick>.*?)\<\/nick\>'
+    nick_re = re.compile(nick_pattern,re.MULTILINE|re.DOTALL)
+    
     def __init__(self, jid, password, chat_medium):
         ClientXMPP.__init__(self, jid, password)
         self._chat_medium = chat_medium
@@ -239,28 +206,59 @@ class JabberBot(ClientXMPP):
         self.send_presence()
         self.get_roster()
         
-        for channel in self._chat_medium._config['channels']:
-            Logger.info(self._chat_medium, "Attempting to join '%s'" % channel)
-            self.plugin['xep_0045'].joinMUC(channel, self._chat_medium._config['chat_name'], wait=True, pfrom=self.boundjid)
+        if self._chat_medium._config.has_key('channels'):
+            for channel in self._chat_medium._config['channels']:
+                Logger.info(self._chat_medium, "Attempting to join '%s'" % channel)
+                self.plugin['xep_0045'].joinMUC(channel, self._chat_medium.getOwnNick(), wait=True, pfrom=self.boundjid)
         
     def onChangedStatus(self, event):
         event_str = "%s" % event
         
-        if event_str.find('b0684310a30e9700') > 0:
-            print event_str
-        
         if event_str.find('<nick') > 0:
-            matches = self.prettyname_re.search(event_str)
+            matches = self.nick_re.search(event_str)
             if matches is None:
                 return
             
             group = matches.groupdict()
-            jid = group['jid'].split('/')[0]
-            self._pretty_names[jid] = group['nick']
+            from_parts = group['from'].split('/')
+            
+            rooms = self.plugin['xep_0045'].rooms
+            if rooms.has_key(from_parts[0]):
+                self.chatnick_to_nick[from_parts[1]] = group['nick']
                 
+                user_parts = group['jid'].split('/')
+                if len(user_parts) == 2:
+                    self.jid_to_nick[group['jid']] = group['nick']
+                
+            
+            
+            
+                
+    def getNick(self, person):
+        if person is None:
+            return None
+        person = "%s" % person
+        
+        rooms = self.plugin['xep_0045'].rooms
+        person_parts =  person.split('/')
+        
+        if len(person_parts) == 2 and rooms.has_key(person_parts[0]):
+            if self.chatnick_to_nick.has_key(person_parts[1]):
+                return self.chatnick_to_nick[person_parts[1]]
+        
+        if person_parts[0] in self.client_roster:
+            user = self.client_roster[person_parts[0]]
+            if len(user['name']) > 0:
+                return user['name']
+            
+        if self.jid_to_nick.has_key(person):
+            return self.jid_to_nick[person]
+        
+        return None
+
         
     def onChatInvite(self, event):
         self._chat_medium.setGroupChannel(event['from'])
         self.plugin['xep_0045'].joinMUC(event['from'],
-                                    self._chat_medium._config['chat_name'],
+                                    self._chat_medium.getOwnNick(),
                                     wait=True)

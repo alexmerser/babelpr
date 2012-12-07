@@ -32,15 +32,19 @@ class LolkingSummoner(Summoner):
     
     summoner_profile_id_cache = {}
     
-    _profile_id = None
-    _profile_html = None
-    _elos = None
-    
-    _ranked_games = {
-        '5V5_TEAM': {'wins': None, 'losses': None},
-        '5V5_SOLO': {'wins': None, 'losses': None},
-        '3V3_TEAM': {'wins': None, 'losses': None}
-    }
+    def __init__(self, summoner_name):
+        self._profile_id = None
+        self._profile_html = None
+        self._elos = None
+        
+        self._ranked_games = {
+            '5V5_TEAM': {'wins': None, 'losses': None},
+            '5V5_SOLO': {'wins': None, 'losses': None},
+            '3V3_TEAM': {'wins': None, 'losses': None}
+        }
+        
+        
+        Summoner.__init__(self, summoner_name)
     
     def getLastMatch(self):
         self.fetchProfile()
@@ -141,7 +145,11 @@ class LolkingSummoner(Summoner):
         
         opener = urllib2.build_opener()
         opener.addheaders.append(('Cookie', 'enabled-search-regions=na'))
-        f = opener.open("http://www.lolking.net/search?%s" % urllib.urlencode({'name': summoner_name}), None, 5)
+        try:
+            f = opener.open("http://www.lolking.net/search?%s" % urllib.urlencode({'name': summoner_name}), None, 5)
+        except:
+            raise UnknownSummoner
+        
         if not f:
             raise UnknownSummoner
 

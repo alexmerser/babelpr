@@ -19,14 +19,15 @@ class InvalidCommandClass(Exception): pass
 
 
 class ChatBot(object):
-    _config = {}
-    _mediums = {}
-    _threads = {}
-    _triggered_commands = {}
-    _greedy_commands = []
-    _trigger_re = []
     
     def __init__(self, config):
+        self._config = {}
+        self._mediums = {}
+        self._threads = {}
+        self._triggered_commands = {}
+        self._greedy_commands = []
+        self._trigger_re = []
+        
         Logger.info(self, "Initializing...")
 
         self.loadConfig(config)
@@ -135,14 +136,51 @@ class ChatBot(object):
     def sendMessage(self, message):
         self._mediums[message.medium_alias].sendMessage(message)
         
+    def getExtendedMediumChannelsForMediumChannel(self, source_medium, source_channel):
+        tunnels = source_medium.getTunnelsForChannel(source_channel)
+        
+        source_pair = (source_medium, source_channel)
+        pairs = [source_pair]
+        for tunnel in tunnels:
+            for medium_alias,medium in self._mediums.iteritems():
+                medium_channels = medium.getChannelsForTunnel(tunnel)
+                for channel in medium_channels:
+                    pair = (medium, channel)
+                    pairs.append(pair)
+                    
+        return list(set(pairs))
+                
+        
+        
     def receiveMessage(self, message):
+        if message is None: 
+            return
         assert isinstance(message, Message.Message)
-        Logger.info(self, "Got message: %s / %s / %s / %s" % (message.channel_type, message.channel_id, message.sender, message.body))
+        
+        source_medium = self._mediums[message.medium_alias]
+        
+        tunnels = source_medium.getTunnelsForChannel(message.channel_id)
+        for tunnel in tunnels:
+            for medium_alias,medium in self._mediums.iteritems():
+                medium.relayTunnelMessage(tunnel, message)
+        
         
         response = self.checkCommandResponse(message)
         if response is not None:
-            response_message = Message.Message(message.medium_alias, message.medium_type, message.channel_type, message.channel_id, None, response)
-            self.sendMessage(response_message)
+            extended = self.getExtendedMediumChannelsForMediumChannel(source_medium, message.channel_id)
+            for pair in extended:
+                medium = pair[0]
+                channel = pair[1]
+                response_message = Message.Message(
+                    medium._alias, 
+                    medium.getMediumName(), 
+                    message.channel_type, 
+                    channel, 
+                    source_medium.getOwnId(), 
+                    source_medium.getOwnNick(), 
+                    response
+                )
+                self.sendMessage(response_message)
             
     def checkCommandResponse(self, message):
         for command in self._greedy_commands:

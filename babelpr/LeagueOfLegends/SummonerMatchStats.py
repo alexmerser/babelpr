@@ -1,15 +1,4 @@
 class SummonerMatchStats(object):
-    summoner_name = None
-    champion = None
-    win = None
-    game_type = None
-    kills = None
-    deaths = None
-    assists = None
-    cs = None
-    gold = None
-    duration = None
-    how_long_ago = None
     
     def __init__(self, summoner_name, champion, win, game_type, kills, deaths, assists, cs, gold, duration, how_long_ago):
         self.summoner_name = summoner_name
