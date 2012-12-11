@@ -1,8 +1,8 @@
-from babelpr.commands import TriggeredCommand
+from babelpr.commands import ExplicitCommand
 from babelpr import Message
 from babelpr.chatbot import ChatBot
 
-class RosterCommand(TriggeredCommand):
+class RosterCommand(ExplicitCommand):
     triggers = ['roster', 'lolroster']
     name = 'roster'
     description = "Gets the roster in a given chat medium"

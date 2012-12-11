@@ -1,5 +1,5 @@
-from babelpr.commands import RandomResponseCommand
+from babelpr.commands import RandomResponseExplicitCommand
 
-class FridayCommand(RandomResponseCommand):
+class FridayCommand(RandomResponseExplicitCommand):
     triggers = ['friday']
     _responses = ['FRIDAY FRIDAY, GOTTA GET DOWN ON FRIDAY']

@@ -1,6 +1,6 @@
-from babelpr.commands import RandomDatabaseResponseCommand
+from babelpr.commands import RandomDatabaseResponseExplicitCommand
 
-class JokeCommand(RandomDatabaseResponseCommand):
+class JokeCommand(RandomDatabaseResponseExplicitCommand):
     triggers = ['joke']
     name = "joke"
     description = "Tells you a joke"

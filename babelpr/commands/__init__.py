@@ -16,23 +16,23 @@ class Command(object):
         self._chatbot = chatbot
     
 
-class TriggeredCommand(Command):
+class ExplicitCommand(Command):
     def processCommand(self, message, trigger, arguments):
         assert isinstance(message, Message.Message)
         return None
 
-class GreedyCommand(Command):
+class ImplicitCommand(Command):
     def processMessage(self, message):
         assert isinstance(message, Message.Message)
         return None
 
 
-class PhraseResponseCommand(GreedyCommand):
+class ExactPhraseImplicitCommand(ImplicitCommand):
     _phrases = []
     _responses = []
     
     def processMessage(self, message):
-        super(PhraseResponseCommand, self).processMessage(message)
+        super(ExactPhraseImplicitCommand, self).processMessage(message)
         assert isinstance(message, Message.Message)
         
         if message.body in self._phrases:
@@ -42,11 +42,11 @@ class PhraseResponseCommand(GreedyCommand):
         
         return None
     
-class RandomResponseCommand(TriggeredCommand):
+class RandomResponseExplicitCommand(ExplicitCommand):
     _responses = []
     
     def processCommand(self, message, trigger, arguments):
-        super(RandomResponseCommand, self).processCommand(message, trigger, arguments)
+        super(RandomResponseExplicitCommand, self).processCommand(message, trigger, arguments)
         assert isinstance(message, Message.Message)
         
         if len(self._responses) == 0:
@@ -56,12 +56,12 @@ class RandomResponseCommand(TriggeredCommand):
         selected = self._responses[i]
         return selected
     
-class RandomDatabaseResponseCommand(RandomResponseCommand):
+class RandomDatabaseResponseExplicitCommand(RandomResponseExplicitCommand):
     _database_file = None
     _db = None
     
     def __init__(self, chatbot):
-        super(RandomDatabaseResponseCommand, self).__init__(chatbot)
+        super(RandomDatabaseResponseExplicitCommand, self).__init__(chatbot)
         
         command = self.__class__.__name__
         command = command.lower()[0:-7]

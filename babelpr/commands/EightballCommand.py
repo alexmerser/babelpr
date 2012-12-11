@@ -1,6 +1,6 @@
-from babelpr.commands import RandomResponseCommand
+from babelpr.commands import RandomResponseExplicitCommand
 
-class EightballCommand(RandomResponseCommand):
+class EightballCommand(RandomResponseExplicitCommand):
     triggers = ['8ball', 'eightball']
     name = '8ball'
     description = "Looks to the magic 8 ball to answer your question."

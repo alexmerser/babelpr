@@ -1,6 +1,6 @@
-from babelpr.commands import RandomDatabaseResponseCommand
+from babelpr.commands import RandomDatabaseResponseExplicitCommand
 
-class FactCommand(RandomDatabaseResponseCommand):
+class FactCommand(RandomDatabaseResponseExplicitCommand):
     triggers = ['fact']
     name = "fact"
     description = "Tells you a random fact."

@@ -1,4 +1,4 @@
-from babelpr.commands import TriggeredCommand
+from babelpr.commands import ExplicitCommand
 from babelpr import Message
 from babelpr.chatbot import ChatBot
 from xml.dom import minidom
@@ -6,7 +6,7 @@ import time
 import datetime
 
 
-class LolstatusCommand(TriggeredCommand):
+class LolstatusCommand(ExplicitCommand):
     triggers = ['lolstatus']
     name = 'lolstatus'
     description = "Gets status of a League of Legends summoner"

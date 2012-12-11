@@ -1,6 +1,6 @@
-from babelpr.commands import PhraseResponseCommand
+from babelpr.commands import ExactPhraseImplicitCommand
 
-class LolResponseCommand(PhraseResponseCommand):
+class LolImplicitCommand(ExactPhraseImplicitCommand):
     _phrases = ['lol']
     _responses = [
                   '8==========D',

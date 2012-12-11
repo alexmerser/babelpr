@@ -1,10 +1,10 @@
-from babelpr.commands import TriggeredCommand
+from babelpr.commands import ExplicitCommand
 from babelpr import Message
 from babelpr.chatbot import ChatBot
 from babelpr.globals import BabelGlobals
 import sqlite3
 
-class AddCommand(TriggeredCommand):
+class AddCommand(ExplicitCommand):
     triggers = ['add']
     
     name = 'add'
@@ -20,7 +20,7 @@ class AddCommand(TriggeredCommand):
             return "Invalid syntax.  Usage: #add DATABASE RESPONSE"
         
         selected_command = None
-        for trigger,command in self._chatbot._triggered_commands.iteritems():
+        for trigger,command in self._chatbot._explicit_commands.iteritems():
             if trigger == arg_parts[0]:
                 selected_command = command
                 break

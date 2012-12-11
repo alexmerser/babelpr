@@ -1,11 +1,11 @@
-from babelpr.commands import TriggeredCommand
+from babelpr.commands import ExplicitCommand
 from babelpr import Message
 from babelpr.chatbot import ChatBot
 from babelpr.utils import stripHTML, getWebpage
 import urllib
 import re
 
-class DefineCommand(TriggeredCommand):
+class DefineCommand(ExplicitCommand):
     triggers = ['define']
     
     name = 'define'

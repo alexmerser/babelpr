@@ -1,6 +1,6 @@
-from babelpr.commands import RandomResponseCommand
+from babelpr.commands import RandomResponseExplicitCommand
 
-class TittiesCommand(RandomResponseCommand):
+class TittiesCommand(RandomResponseExplicitCommand):
     triggers = ['titties']
     _responses = ["Syntax error: when refering to 'the titties command', command is a verb"]
     name = "titties"

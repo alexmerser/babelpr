@@ -1,6 +1,6 @@
-from babelpr.commands import RandomDatabaseResponseCommand
+from babelpr.commands import RandomDatabaseResponseExplicitCommand
 
-class SextCommand(RandomDatabaseResponseCommand):
+class SextCommand(RandomDatabaseResponseExplicitCommand):
     triggers = ['sext', 'cyb0r', 'cyber', 'cybor']
     name = "sext"
     description = "Talks dirty to you."

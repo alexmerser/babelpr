@@ -1,11 +1,11 @@
-from babelpr.commands import TriggeredCommand
+from babelpr.commands import ExplicitCommand
 from babelpr import Message
 from babelpr.chatbot import ChatBot
 from babelpr.LeagueOfLegends.Summoner import SummonerProfileLoadFailure,\
     UnknownSummoner, Summoner
 from babelpr.LeagueOfLegends.LolkingSummoner import LolkingSummoner
 
-class EloCommand(TriggeredCommand):
+class EloCommand(ExplicitCommand):
     triggers = ['elo']
     name = 'elo'
     description = "Fetches the elo for a given summoner"

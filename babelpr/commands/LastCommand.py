@@ -1,4 +1,4 @@
-from babelpr.commands import TriggeredCommand
+from babelpr.commands import ExplicitCommand
 from babelpr import Message
 from babelpr.chatbot import ChatBot
 from babelpr.LeagueOfLegends.Summoner import SummonerProfileLoadFailure,\
@@ -6,7 +6,7 @@ from babelpr.LeagueOfLegends.Summoner import SummonerProfileLoadFailure,\
 from babelpr.LeagueOfLegends.LolkingSummoner import LolkingSummoner
 from babelpr.LeagueOfLegends.SummonerMatchStats import SummonerMatchStats
 
-class LastCommand(TriggeredCommand):
+class LastCommand(ExplicitCommand):
     triggers = ['last']
     name = 'last'
     description = "Tells you info about the last game a summoner played"

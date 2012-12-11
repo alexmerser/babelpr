@@ -3,7 +3,7 @@ from babelpr import chatmedium, Message
 from babelpr.chatmedium import AbstractChatMedium
 from threading import Thread
 import time
-from babelpr.commands import GreedyCommand, TriggeredCommand
+from babelpr.commands import ImplicitCommand, ExplicitCommand
 import os
 from babelpr.globals import BabelGlobals
 import re
@@ -24,8 +24,8 @@ class ChatBot(object):
         self._config = {}
         self._mediums = {}
         self._threads = {}
-        self._triggered_commands = {}
-        self._greedy_commands = []
+        self._explicit_commands = {}
+        self._implicit_commands = []
         self._trigger_re = []
         
         Logger.info(self, "Initializing...")
@@ -101,11 +101,11 @@ class ChatBot(object):
             raise InvalidCommandClass(command_classname)
             
         command = command_class(self)
-        if isinstance(command, GreedyCommand):
-            self._greedy_commands.append(command)
+        if isinstance(command, ImplicitCommand):
+            self._implicit_commands.append(command)
         else:
             for trigger in command.triggers:
-                self._triggered_commands[trigger] = command
+                self._explicit_commands[trigger.lower()] = command
         
     
     def start(self):
@@ -183,8 +183,8 @@ class ChatBot(object):
                 self.enqueueMessage(response_message)
             
     def checkCommandResponse(self, message):
-        for command in self._greedy_commands:
-            assert isinstance(command, GreedyCommand)
+        for command in self._implicit_commands:
+            assert isinstance(command, ImplicitCommand)
             response = command.processMessage(message)
             if response is not None:
                 return response
@@ -192,16 +192,17 @@ class ChatBot(object):
         command_format = self.parseCommandFormat(message)
         if command_format is not None:
             command_match = False
-            if self._triggered_commands.has_key(command_format['trigger']):
-                command = self._triggered_commands[command_format['trigger']]
-                assert isinstance(command, TriggeredCommand)
+            trigger = command_format['trigger'].lower()
+            if self._explicit_commands.has_key(trigger):
+                command = self._explicit_commands[trigger]
+                assert isinstance(command, ExplicitCommand)
                 command_match = True
-                response = command.processCommand(message, command_format['trigger'], command_format['arguments'])
+                response = command.processCommand(message, trigger, command_format['arguments'])
                 if response is not None:
                     return response
                 
             if not command_match:
-                #return "Unknown command: '%s'" % command_format['trigger']
+                #return "Unknown command: '%s'" % trigger
                 pass
         
         return None

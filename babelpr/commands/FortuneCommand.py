@@ -1,6 +1,6 @@
-from babelpr.commands import RandomDatabaseResponseCommand
+from babelpr.commands import RandomDatabaseResponseExplicitCommand
 
-class FortuneCommand(RandomDatabaseResponseCommand):
+class FortuneCommand(RandomDatabaseResponseExplicitCommand):
     triggers = ['fortune']
     name = "fortune"
     description = "Tells you your fortune."

@@ -1,11 +1,11 @@
-from babelpr.commands import TriggeredCommand
+from babelpr.commands import ExplicitCommand
 from babelpr import Message
 from babelpr.chatbot import ChatBot
 from babelpr.utils import stripHTML, getWebpage
 import re
 import urllib
 
-class ReviewCommand(TriggeredCommand):
+class ReviewCommand(ExplicitCommand):
     name = "review"
     triggers = ["review"]
     description = "Gives you a review for a movie (from rottentomatoes.com)."

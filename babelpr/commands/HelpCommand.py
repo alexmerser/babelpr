@@ -1,8 +1,8 @@
-from babelpr.commands import TriggeredCommand
+from babelpr.commands import ExplicitCommand
 from babelpr import Message
 from babelpr.chatbot import ChatBot
 
-class HelpCommand(TriggeredCommand):
+class HelpCommand(ExplicitCommand):
     triggers = ['help']
     name = 'help'
     description = "Provides help for commands that are available"
@@ -16,7 +16,7 @@ class HelpCommand(TriggeredCommand):
         
         if len(arguments) == 0:
             commands = []
-            for trigger,command in self._chatbot._triggered_commands.iteritems():
+            for trigger,command in self._chatbot._k_commands.iteritems():
                 trigger = command.triggers[0]
                 if trigger not in commands:
                     commands.append(trigger)
@@ -28,10 +28,10 @@ class HelpCommand(TriggeredCommand):
             if arguments[0] == '#':
                 arguments = arguments[1:]
                 
-            if not self._chatbot._triggered_commands.has_key(arguments):
+            if not self._chatbot._explicit_commands.has_key(arguments):
                 return "Unknown command: '%s'" % arguments
             
-            command = self._chatbot._triggered_commands[arguments]
+            command = self._chatbot._explicit_commands[arguments]
             
             return "Help for command '%(cmd)s':\n%(desc)s\nSyntax: %(syntax)s" % {
                   'cmd': command.name,
