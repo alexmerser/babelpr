@@ -6,10 +6,14 @@ import re
 import urllib
 
 class ReviewCommand(ExplicitCommand):
-    name = "review"
-    triggers = ["review"]
-    description = "Gives you a review for a movie (from rottentomatoes.com)."
-    syntax = "#review movie"
+    
+    def __init__(self, chatbot):
+        ExplicitCommand.__init__(self, chatbot)
+        
+        self.name = "review"
+        self.triggers = ["review"]
+        self.description = "Gives you a review for a movie (from rottentomatoes.com)."
+        self.syntax = "#review movie"
 
     def processCommand(self, message, trigger, arguments):
         assert isinstance(message, Message.Message)

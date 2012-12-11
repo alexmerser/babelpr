@@ -6,11 +6,14 @@ import urllib
 import re
 
 class DefineCommand(ExplicitCommand):
-    triggers = ['define']
     
-    name = 'define'
-    description = "Checks various online dictionaries to define your word."
-    syntax = "#define [mw#|google#|urban#] WORD"
+    def __init__(self, chatbot):
+        ExplicitCommand.__init__(self, chatbot)
+    
+        self.triggers = ['define']
+        self.name = 'define'
+        self.description = "Checks various online dictionaries to define your word."
+        self.syntax = "#define [mw#|google#|urban#] WORD"
     
     def processCommand(self, message, trigger, arguments):
         assert isinstance(message, Message.Message)

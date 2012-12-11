@@ -3,10 +3,14 @@ from babelpr import Message
 from babelpr.chatbot import ChatBot
 
 class RosterCommand(ExplicitCommand):
-    triggers = ['roster', 'lolroster']
-    name = 'roster'
-    description = "Gets the roster in a given chat medium"
-    syntax = "#roster [MEDIUM]"
+    
+    def __init__(self, chatbot):
+        ExplicitCommand.__init__(self, chatbot)
+        
+        self.triggers = ['roster', 'lolroster']
+        self.name = 'roster'
+        self.description = "Gets the roster in a given chat medium"
+        self.syntax = "#roster [MEDIUM]"
 
     def processCommand(self, message, trigger, arguments):
         assert isinstance(message, Message.Message)

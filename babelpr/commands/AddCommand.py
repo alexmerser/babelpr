@@ -5,11 +5,13 @@ from babelpr.globals import BabelGlobals
 import sqlite3
 
 class AddCommand(ExplicitCommand):
-    triggers = ['add']
+    def __init__(self, chatbot):
+        ExplicitCommand.__init__(self, chatbot)
     
-    name = 'add'
-    description = 'Adds a response to certain commands'
-    syntax = '#add DATABASE RESPONSE'
+        self.triggers = ['add']
+        self.name = 'add'
+        self.description = 'Adds a response to certain commands'
+        self.syntax = '#add DATABASE RESPONSE'
 
     def processCommand(self, message, trigger, arguments):
         assert isinstance(message, Message.Message)

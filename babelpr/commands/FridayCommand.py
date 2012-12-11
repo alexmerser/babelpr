@@ -1,5 +1,10 @@
 from babelpr.commands import RandomResponseExplicitCommand
 
 class FridayCommand(RandomResponseExplicitCommand):
-    triggers = ['friday']
-    _responses = ['FRIDAY FRIDAY, GOTTA GET DOWN ON FRIDAY']
+    
+    def __init__(self, chatbot):
+        RandomResponseExplicitCommand.__init__(self, chatbot)
+        
+        self.triggers = ['friday']
+        self._responses = ['FRIDAY FRIDAY, GOTTA GET DOWN ON FRIDAY']
+

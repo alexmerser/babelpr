@@ -7,10 +7,14 @@ import datetime
 
 
 class LolstatusCommand(ExplicitCommand):
-    triggers = ['lolstatus']
-    name = 'lolstatus'
-    description = "Gets status of a League of Legends summoner"
-    syntax = "#lolstatus SUMMONER"
+    
+    def __init__(self, chatbot):
+        ExplicitCommand.__init__(self, chatbot)
+        
+        self.triggers = ['lolstatus']
+        self.name = 'lolstatus'
+        self.description = "Gets status of a League of Legends summoner"
+        self.syntax = "#lolstatus SUMMONER"
 
     def processCommand(self, message, trigger, arguments):
         assert isinstance(message, Message.Message)

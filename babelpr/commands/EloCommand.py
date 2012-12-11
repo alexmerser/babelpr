@@ -6,10 +6,14 @@ from babelpr.LeagueOfLegends.Summoner import SummonerProfileLoadFailure,\
 from babelpr.LeagueOfLegends.LolkingSummoner import LolkingSummoner
 
 class EloCommand(ExplicitCommand):
-    triggers = ['elo']
-    name = 'elo'
-    description = "Fetches the elo for a given summoner"
-    syntax = "#elo [5v5_solo|5v5_team|3v3_team] summoner"
+    
+    def __init__(self, chatbot):
+        ExplicitCommand.__init__(self, chatbot)
+        
+        self.triggers = ['elo']
+        self.name = 'elo'
+        self.description = "Fetches the elo for a given summoner"
+        self.syntax = "#elo [5v5_solo|5v5_team|3v3_team] summoner"
 
     def processCommand(self, message, trigger, arguments):
         assert isinstance(message, Message.Message)

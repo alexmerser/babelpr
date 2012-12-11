@@ -205,6 +205,9 @@ class JabberBot(ClientXMPP):
         self.add_event_handler("changed_status", self.onChangedStatus)
 
     def session_start(self, event):
+        Logger.info(self._chat_medium, "Jabber Session Starting...")
+        self.plugin['xep_0045'].rooms = {}
+        
         self.send_presence()
         self.get_roster()
         

@@ -1,7 +1,11 @@
 from babelpr.commands import RandomDatabaseResponseExplicitCommand
 
 class JokeCommand(RandomDatabaseResponseExplicitCommand):
-    triggers = ['joke']
-    name = "joke"
-    description = "Tells you a joke"
-    syntax = "#jack"
+    
+    def __init__(self, chatbot):
+        RandomDatabaseResponseExplicitCommand.__init__(self, chatbot)
+        
+        self.triggers = ['joke']
+        self.name = "joke"
+        self.description = "Tells you a joke"
+        self.syntax = "#jack"

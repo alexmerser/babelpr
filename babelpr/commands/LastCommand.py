@@ -7,10 +7,14 @@ from babelpr.LeagueOfLegends.LolkingSummoner import LolkingSummoner
 from babelpr.LeagueOfLegends.SummonerMatchStats import SummonerMatchStats
 
 class LastCommand(ExplicitCommand):
-    triggers = ['last']
-    name = 'last'
-    description = "Tells you info about the last game a summoner played"
-    syntax = "#last SUMMONERNAME"
+    
+    def __init__(self, chatbot):
+        ExplicitCommand.__init__(self, chatbot)
+        
+        self.triggers = ['last']
+        self.name = 'last'
+        self.description = "Tells you info about the last game a summoner played"
+        self.syntax = "#last SUMMONERNAME"
     
     def processCommand(self, message, trigger, arguments):
         assert isinstance(message, Message.Message)

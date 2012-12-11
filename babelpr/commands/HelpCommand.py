@@ -3,10 +3,14 @@ from babelpr import Message
 from babelpr.chatbot import ChatBot
 
 class HelpCommand(ExplicitCommand):
-    triggers = ['help']
-    name = 'help'
-    description = "Provides help for commands that are available"
-    syntax = "#help [COMMAND]"
+    
+    def __init__(self, chatbot):
+        ExplicitCommand.__init__(self, chatbot)
+        
+        self.triggers = ['help']
+        self.name = 'help'
+        self.description = "Provides help for commands that are available"
+        self.syntax = "#help [COMMAND]"
 
     def processCommand(self, message, trigger, arguments):
         assert isinstance(message, Message.Message)

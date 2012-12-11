@@ -1,5 +1,9 @@
 from babelpr.commands import ExactPhraseImplicitCommand
 
 class DicksImplicitCommand(ExactPhraseImplicitCommand):
-    _phrases = ['dicks']
-    _responses = ['lol']
+    
+    def __init__(self, chatbot):
+        ExactPhraseImplicitCommand.__init__(self, chatbot)
+    
+        self._phrases = ['dicks']
+        self._responses = ['lol']
