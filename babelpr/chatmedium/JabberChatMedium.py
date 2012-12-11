@@ -70,7 +70,9 @@ class JabberChatMedium(AbstractChatMedium, ClientXMPP):
             channel_id = parts[0]
             msg_from = parts[0]
             
-        if msg_from == self.getOwnNick() or msg_from == self._xmpp.boundjid:
+        msg_from_str = "%s" % msg_from
+            
+        if msg_from_str == self.getOwnNick() or msg_from_str == "%s" % self._xmpp.boundjid:
             return None
             
         from_nick = self._xmpp.getNick(msg_from)
