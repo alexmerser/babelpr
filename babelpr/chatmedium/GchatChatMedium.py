@@ -4,8 +4,10 @@ from babelpr.logger import Logger
 class GchatChatMedium(JabberChatMedium):
     
     def __init__(self, chatbot, alias, config):
-        self._last_group_channel = None
         JabberChatMedium.__init__(self, chatbot, alias, config)
+        
+        self._last_group_channel = None
+        self.MIN_DELAY_BETWEEN_MESSAGES = 0.1
 
     def onJabberMessage(self, msg):
         message = self.digestJabberMessage(msg)

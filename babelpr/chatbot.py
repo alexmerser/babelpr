@@ -133,8 +133,8 @@ class ChatBot(object):
         
         # Logger.debug(self, "All mediums healthy")
         
-    def sendMessage(self, message):
-        self._mediums[message.medium_alias].sendMessage(message)
+    def enqueueMessage(self, message):
+        self._mediums[message.medium_alias].enqueueMessage(message)
         
     def getExtendedMediumChannelsForMediumChannel(self, source_medium, source_channel):
         tunnels = source_medium.getTunnelsForChannel(source_channel)
@@ -180,7 +180,7 @@ class ChatBot(object):
                     source_medium.getOwnNick(), 
                     response
                 )
-                self.sendMessage(response_message)
+                self.enqueueMessage(response_message)
             
     def checkCommandResponse(self, message):
         for command in self._greedy_commands:

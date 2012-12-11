@@ -1,6 +1,9 @@
 from babelpr.logger import Logger
 import re
 from babelpr.Message import Message
+from threading import Thread, Lock
+import time
+from Queue import Queue
 
 class AbstractChatMedium(object):
     
@@ -13,11 +16,17 @@ class AbstractChatMedium(object):
         self._isAlive = True
         self._alias = None
         self._tunnel_regex = {}
+        self._message_queue = Queue()
+        self._last_message_sent = time.time()
+        self.MIN_DELAY_BETWEEN_MESSAGES = 0.5
         
         Logger.info(self, "%s %s initalizing..." % (alias, config['medium']))
         self._alias = alias
         self._config = config
         self._chatbot = chatbot
+        
+        Thread(target=self.processMessageQueue, args=()).start()
+        
         
         if self._config.has_key('tunnels'):
             for tunnel_id,patterns in self._config['tunnels'].iteritems():
@@ -34,11 +43,14 @@ class AbstractChatMedium(object):
     
     def sendBodyToTarget(self, target_type, target, body):
         message = Message(self._alias, self.getMediumName(), target_type, target, self.getOwnId(), self.getOwnNick(), body)
-        self.sendMessage(message)
+        self.enqueueMessage(message)
     
+    def enqueueMessage(self, message):
+        self._message_queue.put(message, True)
+        
     def sendMessage(self, message):
-        pass
-    
+        self._last_message_sent = time.time()
+        
     def getMediumName(self):
         return self._config['medium']
     
@@ -89,4 +101,26 @@ class AbstractChatMedium(object):
         for channel in channels:
             if channel != source_message.channel_id:
                 self.sendBodyToTarget(self.CHANNEL_TYPE_GROUP, channel, body)
+                
+                
+    def processMessageQueue(self):
+        while True:
+            message = self._message_queue.get(True)
+            
+            if message is None:
+                Logger.debug(self, "No message found in processMessageQueue, skipping...")
+                continue
+            
+            #Logger.debug(self, "Message queue found message to send.")
+            
+            if time.time() - self._last_message_sent < self.MIN_DELAY_BETWEEN_MESSAGES:
+                sleep_time = self.MIN_DELAY_BETWEEN_MESSAGES - (time.time() - self._last_message_sent)
+                Logger.debug(self, "Recently sent a message. Sleeping for %f seconds..." % sleep_time)
+                time.sleep(sleep_time)
+            
+            #Logger.debug(self, "Message queue sending message.")     
+            self.sendMessage(message)
+    
+    
+
     
