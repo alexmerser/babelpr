@@ -189,15 +189,14 @@ class JabberChatMedium(AbstractChatMedium, ClientXMPP):
         return roster
 
 class JabberBot(ClientXMPP):
-    _chat_medium = None
-    chatnick_to_nick = {}
-    jid_to_nick = {}
-    
     nick_pattern = 'from="(?P<from>.*?)".*jid="(?P<jid>.*?)" role.*\<nick xmlns="http:\/\/jabber\.org\/protocol\/nick"\>(?P<nick>.*?)\<\/nick\>'
     nick_re = re.compile(nick_pattern,re.MULTILINE|re.DOTALL)
     
     def __init__(self, jid, password, chat_medium):
         ClientXMPP.__init__(self, jid, password)
+        self.chatnick_to_nick = {}
+        self.jid_to_nick = {}
+        
         self._chat_medium = chat_medium
         self.add_event_handler("session_start", self.session_start)
         self.add_event_handler("groupchat_invite", self.onChatInvite)
