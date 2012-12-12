@@ -33,6 +33,18 @@
 			"tunnels": {
 				"guild": ["^pu.*@lvl.pvp.net$"]
 			}
+		},
+		
+		"irc": {
+			"medium": "irc",
+			"bot_nick": "yournick",
+			"password": "yourpass",
+			"server": "irc.freenode.net",
+			"port": 6667,
+			"channels": ["#yourchannel"],
+			"tunnels": {
+				"guild": ["#yourchannel"]
+			}
 		}
 	}
 }
