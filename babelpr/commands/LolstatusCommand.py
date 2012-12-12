@@ -33,20 +33,36 @@ class LolstatusCommand(ExplicitCommand):
         roster = self._chatbot._mediums[medium_alias]._xmpp.client_roster
         summoner_resource = None
         online = self._chatbot._mediums[medium_alias].getRoster()
+        channels = self._chatbot._mediums[medium_alias].getChannels()
         
         for jid,data in online.iteritems():
+            jid_parts = ("%s" % jid).split('/')
+            node_domain = jid_parts[0]
+            resource = jid_parts[1]
+            
+            if node_domain not in roster:
+                continue
+            
+            is_channel = node_domain in channels
+            
             presence = roster.presence(jid)
             main_resource = None
-            for resource_id,resource, in presence.iteritems():
-                main_resource = resource
+            for presence_resource in presence.itervalues():
+                main_resource = presence_resource
                 break
             
             if main_resource is None:
                 continue
             
-            if data['name'].lower() == summoner_name:
+            if is_channel:
+                summoner_match = resource.lower() == summoner_name
+            else:
+                summoner_match = data['name'].lower() == summoner_name
+                
+            if summoner_match:
                 summoner_resource = main_resource
                 summoner_name = data['name']
+                break
             
         if summoner_resource is None:
             return "Summoner '%s' is offline" % arguments
