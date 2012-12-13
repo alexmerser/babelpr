@@ -31,9 +31,13 @@ class LolstatusCommand(ExplicitCommand):
             return "I am not set up to connect to League of Legends"
         
         roster = self._chatbot._mediums[medium_alias]._xmpp.client_roster
-        summoner_resource = None
         online = self._chatbot._mediums[medium_alias].getRoster()
         channels = self._chatbot._mediums[medium_alias].getChannels()
+
+        channel_summoner_resource = None
+        solo_summoner_resource = None
+        channel_summoner_name = None
+        solo_summoner_name = None
         
         for jid,data in online.iteritems():
             jid_parts = ("%s" % jid).split('/')
@@ -54,15 +58,21 @@ class LolstatusCommand(ExplicitCommand):
             if main_resource is None:
                 continue
             
-            if is_channel:
-                summoner_match = resource.lower() == summoner_name
-            else:
-                summoner_match = data['name'].lower() == summoner_name
-                
-            if summoner_match:
-                summoner_resource = main_resource
-                summoner_name = data['name']
-                break
+            if is_channel and resource.lower() == summoner_name:
+                channel_summoner_resource = main_resource
+                channel_summoner_name = data['name']
+            elif not is_channel and data['name'].lower() == summoner_name:
+                solo_summoner_resource = main_resource
+                solo_summoner_name = data['name']
+            
+        summoner_resource = None
+        if solo_summoner_resource is not None:
+            summoner_resource = solo_summoner_resource
+            summoner_name = solo_summoner_name
+        elif channel_summoner_resource is not None:
+            summoner_resource = channel_summoner_resource
+            summoner_name = channel_summoner_name
+            
             
         if summoner_resource is None:
             return "Summoner '%s' is offline" % arguments
