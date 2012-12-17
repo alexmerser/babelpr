@@ -142,7 +142,7 @@ class ChatBot(object):
         source_pair = (source_medium, source_channel)
         pairs = [source_pair]
         for tunnel in tunnels:
-            for medium_alias,medium in self._mediums.iteritems():
+            for medium in self._mediums.itervalues():
                 medium_channels = medium.getChannelsForTunnel(tunnel)
                 for channel in medium_channels:
                     pair = (medium, channel)
@@ -161,7 +161,7 @@ class ChatBot(object):
         
         tunnels = source_medium.getTunnelsForChannel(message.channel_id)
         for tunnel in tunnels:
-            for medium_alias,medium in self._mediums.iteritems():
+            for medium in self._mediums.itervalues():
                 medium.relayTunnelMessage(tunnel, message)
         
         
