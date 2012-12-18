@@ -1,5 +1,6 @@
 {
 	"LoggingLevel": "DEBUG",
+	"yahoo_appid": "get one at https://developer.apps.yahoo.com/wsregapp/",
 	"command_trigger_formats": [
 		"^#(?P<trigger>[^ ]+) *(?P<arguments>.*)$",
 		"^(?P<trigger>[^ ]+): *(?P<arguments>.*)$"
