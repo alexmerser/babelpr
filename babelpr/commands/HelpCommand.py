@@ -20,7 +20,7 @@ class HelpCommand(ExplicitCommand):
         
         if len(arguments) == 0:
             commands = []
-            for trigger,command in self._chatbot._k_commands.iteritems():
+            for trigger,command in self._chatbot._explicit_commands.iteritems():
                 trigger = command.triggers[0]
                 if trigger not in commands:
                     commands.append(trigger)
