@@ -196,6 +196,7 @@ class JabberBot(ClientXMPP):
         ClientXMPP.__init__(self, jid, password)
         self.chatnick_to_nick = {}
         self.jid_to_nick = {}
+        self.presence_history = {}
         
         self._chat_medium = chat_medium
         self.add_event_handler("session_start", self.session_start)
@@ -221,9 +222,18 @@ class JabberBot(ClientXMPP):
         try:
             # let them know we can do MUC
             jid = event.get_from()
-            if jid not in self.plugin['xep_0045'].rooms and jid != self.boundjid:        
-                data = '<presence to="%s" from="%s"><status /><priority>24</priority><c xmlns="http://jabber.org/protocol/caps" node="http://mail.google.com/xmpp/client/caps" ext="pmuc-v1" ver="1.1" /></presence>'
-                self.send_raw(data % (jid, self.boundjid))
+            jid_str = "%s" % jid
+            if jid not in self.plugin['xep_0045'].rooms and jid != self.boundjid and jid_str.find("private-chat-") == -1:
+                if jid_str not in self.presence_history:
+                    send_it = True
+                else:
+                    send_it = time.time() - self.presence_history[jid_str] > 60
+                                        
+                if send_it:
+                    self.presence_history[jid_str] = time.time()
+                    Logger.info(self._chat_medium, "Sending presence to %s..." % jid)
+                    data = '<presence to="%s" from="%s"><status /><priority>24</priority><c xmlns="http://jabber.org/protocol/caps" node="http://mail.google.com/xmpp/client/caps" ext="pmuc-v1" ver="1.1" /></presence>'
+                    self.send_raw(data % (jid, self.boundjid))
         except:
             pass
             
