@@ -24,7 +24,7 @@ class JabberChatMedium(AbstractChatMedium, ClientXMPP):
             self._xmpp = JabberBot(self._config['username'], self._config['password'], self)
             self._xmpp.register_plugin('xep_0030') # Service Discovery
             self._xmpp.register_plugin('xep_0045') # Multi-User Chat
-            self._xmpp.register_plugin('xep_0249') # Direct MUC Invitations
+            #self._xmpp.register_plugin('xep_0249') # Direct MUC Invitations
             self._xmpp.register_plugin('xep_0199') # XMPP Ping                     
             
             self._xmpp.add_event_handler("message", self.onJabberMessage)
@@ -202,6 +202,7 @@ class JabberBot(ClientXMPP):
         self.add_event_handler("groupchat_invite", self.onChatInvite)
         self.add_event_handler("groupchat_direct_invite", self.onChatInvite)
         self.add_event_handler("changed_status", self.onChangedStatus)
+        self.add_event_handler("got_online", self.onChangedStatus)
 
     def session_start(self, event):
         Logger.info(self._chat_medium, "Jabber Session Starting...")
@@ -210,12 +211,24 @@ class JabberBot(ClientXMPP):
         self.send_presence()
         self.get_roster()
         
+        
         if self._chat_medium._config.has_key('channels'):
             for channel in self._chat_medium._config['channels']:
                 Logger.info(self._chat_medium, "Attempting to join '%s'" % channel)
                 self.plugin['xep_0045'].joinMUC(channel, self._chat_medium.getOwnNick(), wait=True, pfrom=self.boundjid)
         
     def onChangedStatus(self, event):
+        try:
+            # let them know we can do MUC
+            jid = event.get_from()
+            if jid not in self.plugin['xep_0045'].rooms and jid != self.boundjid:        
+                data = '<presence to="%s" from="%s"><status /><priority>24</priority><c xmlns="http://jabber.org/protocol/caps" node="http://mail.google.com/xmpp/client/caps" ext="pmuc-v1" ver="1.1" /></presence>'
+                self.send_raw(data % (jid, self.boundjid))
+        except:
+            pass
+            
+            
+        
         event_str = "%s" % event
         
         if event_str.find('<nick') > 0:
