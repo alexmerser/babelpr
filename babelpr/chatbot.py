@@ -7,6 +7,7 @@ from babelpr.commands import ImplicitCommand, ExplicitCommand
 import os
 from babelpr.globals import BabelGlobals
 import re
+import sqlite3
 
 class InvalidConfigError(Exception): pass
 class NoMediumsConfigured(Exception): pass
@@ -29,10 +30,40 @@ class ChatBot(object):
         self._trigger_re = []
         
         Logger.info(self, "Initializing...")
-
+        
+        # self.loadUserDb()
         self.loadConfig(config)
         self.loadMediums()
         self.loadCommands()
+
+    def loadUserDb(self):
+        user_dbfile = BabelGlobals.location + '/babelpr/commands/databases/_user_locations.db'
+        try:
+            self._user_db = sqlite3.connect(user_dbfile)
+        except:
+            Logger.warning(self, "Unable to load user DB file")
+            self._user_db = None
+            return
+        
+        try:
+            c = self._user_db.cursor()
+        except:
+            Logger.warning(self, "Unable to get user DB cursor in loadUserDb")
+            return
+        
+        try:
+            sql = 'create table if not exists locations (user_uniqid, location)'
+            c.execute(sql)
+        except:
+            Logger.warning(self, "Unable create user DB table in loadUserDb")
+        
+        try:
+            c.close()
+        except:
+            pass
+        
+
+        
 
     def loadConfig(self, config):
         # do some basic validation of the config
@@ -213,4 +244,78 @@ class ChatBot(object):
             if r:
                 return r.groupdict()
         return None
+    
+    def getUniqueIdForSender(self, message):
+        assert isinstance(message, Message.Message)
+        medium_user_id = self._mediums[message.medium_alias].getUniqueIdForSender(message)
+        if medium_user_id is None:
+            return None
+        return message.medium_alias + ':' + medium_user_id 
+    
+    def getUserLocation(self, user_uniqid):
+        self.loadUserDb()
+        
+        if self._user_db is None:
+            return None
+        
+        try:
+            cursor = self._user_db.cursor()
+        except:
+            Logger.warning(self, "Unable to create user DB cursor in getUserLocation")
+            self._user_db.close()
+            return None
+        
+        ret = None
+        try:
+            cursor.execute('SELECT location FROM locations where user_uniqid=?', [user_uniqid])
+            data = cursor.fetchall()
+            if len(data) > 0:
+                ret = data[0][0]
+        except:
+            pass
+        
+        try:
+            cursor.close()
+        except:
+            pass
+        
+        self._user_db.close()
+        
+        return ret
+    
+    def getUserUniqueId(self, provided_nick, medium_alias):
+        medium_user_id = self._mediums[medium_alias].getUserUniqueId(provided_nick)
+        if medium_user_id is None:
+            return None
+        return medium_alias + ':' + medium_user_id
+    
+    def getUserNick(self, user_uniqid, medium_alias):
+        parts = user_uniqid.split(':', 1)
+        return self._mediums[medium_alias].getUserNick(parts[len(parts)-1])
+    
+    def storeUserLocation(self, user_uniqid, location):
+        self.loadUserDb()
+        
+        if self._user_db is None:
+            return
+        
+        try:
+            cursor = self._user_db.cursor()
+        except:
+            Logger.warning(self, "Unable to create user DB cursor in storeUserLocation")
+            return
+        
+        try:
+            cursor.execute('delete from locations where user_uniqid = ?', [user_uniqid])
+            cursor.execute('insert into locations values (?,?)', [user_uniqid, location])
+            self._user_db.commit()
+        except:
+            pass
+        
+        try:
+            cursor.close()
+        except:
+            pass
+        
+        self._user_db.close()
         

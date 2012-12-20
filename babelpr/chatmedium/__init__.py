@@ -54,6 +54,48 @@ class AbstractChatMedium(object):
     def getMediumName(self):
         return self._config['medium']
     
+    def getUniqueIdForSender(self, message):
+        assert isinstance(message, Message)
+        
+        if message.channel_type == self.CHANNEL_TYPE_GROUP:
+            return self.getUniqueUserIdForGroupSender(message)
+        
+        return self.getUniqueUserIdForIndividualSender(message)
+    
+    def getUniqueUserIdForGroupSender(self, message):
+        assert isinstance(message, Message)
+        return message.sender_id
+        
+    def getUniqueUserIdForIndividualSender(self, message):
+        assert isinstance(message, Message)
+        return message.sender_id
+    
+    def getUserUniqueId(self, provided_nick):
+        roster = self.getRoster()
+        provided_nick = provided_nick.lower()
+        
+        # first check for an exact roster_id match
+        for roster_id in roster.iterkeys():
+            if roster_id.lower() == provided_nick:
+                return roster_id
+        
+        #then check for an exact nick match
+        for roster_id, roster_data in roster.iteritems():
+            if roster_data['name'].lower() == provided_nick:
+                return roster_id
+
+        #then check for a partial roster_id match
+        for roster_id in roster.iterkeys():
+            if roster_id.lower().find(provided_nick) == 0:
+                return roster_id
+            
+        #finally, check for a partial nick match
+        for roster_id, roster_data in roster.iteritems():
+            if roster_data['name'].lower().find(provided_nick) == 0:
+                return roster_id
+        
+        return None
+    
     def getRoster(self):
         return {}
     
@@ -65,6 +107,15 @@ class AbstractChatMedium(object):
 
     def getChannels(self):
         return []
+    
+    def getUserNick(self, user_id):
+        roster = self.getRoster()
+        
+        for roster_id, roster_data in roster.iteritems():
+            if roster_id == user_id:
+                return roster_data['name']
+            
+        return user_id
     
     def getTunnelsForChannel(self, channel_id):
         matches = []

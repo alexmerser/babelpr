@@ -8,3 +8,4 @@ class Message(object):
         self.sender_id = sender_id
         self.sender_nick = sender_nick
         self.body = body
+        

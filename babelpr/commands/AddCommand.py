@@ -39,6 +39,7 @@ class AddCommand(ExplicitCommand):
             connection = sqlite3.connect(database_file)
             cursor = connection.cursor()
             cursor.execute('insert into responses values (?)', [arg_parts[1]])
+            connection.commit()
             success = True
         except:
             success = False

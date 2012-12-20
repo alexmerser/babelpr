@@ -21,22 +21,58 @@ class WeatherCommand(ExplicitCommand):
         assert isinstance(message, Message.Message)
         assert isinstance(self._chatbot, ChatBot)
 
+        lookup_type = None
+        requestor = self._chatbot.getUniqueIdForSender(message)
+        
         args = arguments.strip()
         if args == "":
-            return "Syntax: " + self.syntax
+            requestor_location = self._chatbot.getUserLocation(requestor)
+            if requestor_location is None:            
+                return "Sorry, I don't know where you are.  Use " + self.syntax
+            lookup_location = requestor_location
+            lookup_type = "REQUESTOR_LOCATION"
+            
+            woeid = None 
+        else:
+            lookup_location = args
+            lookup_type = "SPECIFIED_LOCATION"
+    
+            user_uniqid = self._chatbot.getUserUniqueId(lookup_location, message.medium_alias)
+            user_location = self._chatbot.getUserLocation(user_uniqid)
+            woeid = self.getWOEID(user_location)
         
-        woeid = self.getWOEID(args)
         if woeid is None:
-            return "Sorry, I don't know where '%s' is" % args
-        
+            woeid = self.getWOEID(lookup_location)
+            if woeid is None:
+                if lookup_location != args:
+                    return "Sorry, I thought you were in '%s' but I can't seem to find that location any more.  Please use %s" % (lookup_location, self.syntax)
+                else:
+                    return "Sorry, I don't know where/who that is"
+                
+        else:
+            lookup_location = user_location
+            lookup_type = "OTHER_USER_NAME"
+            
         weather = self.getWeather(woeid)
         
         if weather is None:
-            return "Sorry, I don't know the weather there."
+            return "Sorry, I know who/where '%s' is, but I don't know the weather there." % lookup_location
         
-        return weather
+        if lookup_type == "SPECIFIED_LOCATION":
+            self._chatbot.storeUserLocation(requestor, lookup_location)
+            
+        if lookup_type == "OTHER_USER_NAME":
+            prefix = "Weather for %s in %s: " % (self._chatbot.getUserNick(user_uniqid, message.medium_alias), weather[0])
+        else:
+            prefix = "Weather in %s: " % weather[0]
+            
+        
+        return prefix + weather[1]
 
     def getWOEID(self, location):
+        if location is None:
+            return None
+        
         url = "http://where.yahooapis.com/v1/places.q('%s')?appid=%s" % (urllib.quote(location), self._chatbot._config['yahoo_appid'])
         page = getWebpage(url)
         r = self.woe_re.search(page)
@@ -48,6 +84,9 @@ class WeatherCommand(ExplicitCommand):
         return d['woeid']
     
     def getWeather(self, woeid):
+        if woeid is None:
+            return None
+        
         WEATHER_NS = 'http://xml.weather.yahoo.com/ns/rss/1.0'
         url = "http://weather.yahooapis.com/forecastrss?w=%s" % woeid
         
@@ -84,7 +123,7 @@ class WeatherCommand(ExplicitCommand):
         
         str_location = "WOEID %s" % woeid if location is None else "%s, %s" % (location['city'], location['region'])
         
-        return "Weather for %s: %s and %s degrees" % (str_location, condition['current_condition'], condition['current_temp'])
+        return (str_location, "%s and %s degrees" % (condition['current_condition'], condition['current_temp']))
         
         
         

@@ -1,5 +1,7 @@
 from babelpr.chatmedium.JabberChatMedium import JabberChatMedium
 from babelpr.logger import Logger
+from babelpr import Message
+from sleekxmpp.xmlstream.jid import JID
 
 class GchatChatMedium(JabberChatMedium):
     
@@ -39,3 +41,33 @@ class GchatChatMedium(JabberChatMedium):
         if channel != self._last_group_channel:
             Logger.info(self, "%s changing main group channel to '%s'" % (self._alias, channel))
             self._last_group_channel = channel
+
+
+    def getRoster(self):
+        jabber_roster =  JabberChatMedium.getRoster(self)
+        roster = {}
+        
+        for key,value in jabber_roster.iteritems():
+            new_key = ("%s" % key).split('/',1)[0]
+            roster[new_key] = value
+            
+        return roster
+        
+
+
+    def getUniqueUserIdForGroupSender(self, message):
+        assert isinstance(message, Message.Message)
+        user_id = message.sender_id
+        try:
+            room = self._xmpp.plugin['xep_0045'].rooms[message.channel_id]
+            user = room[message.sender_id]
+            jid = user['jid']
+            user_id = jid.bare
+        except:
+            pass
+        
+        return user_id
+        
+    def getUniqueUserIdForIndividualSender(self, message):
+        assert isinstance(message, Message.Message)
+        return message.channel_id
