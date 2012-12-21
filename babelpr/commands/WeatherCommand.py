@@ -1,7 +1,7 @@
 from babelpr.commands import ExplicitCommand
 from babelpr import Message
 from babelpr.chatbot import ChatBot
-from babelpr.utils import stripHTML, getWebpage
+from babelpr.utils import stripHTML, getWebpage, isInt
 import re
 import urllib
 from xml.dom import minidom
@@ -45,7 +45,7 @@ class WeatherCommand(ExplicitCommand):
             woeid = self.getWOEID(lookup_location)
             if woeid is None:
                 if lookup_location != args:
-                    return "Sorry, I thought you were in '%s' but I can't seem to find that location any more.  Please use %s" % (lookup_location, self.syntax)
+                    return "Sorry, I thought you were in '%s' but I can't seem to find that location any more.  Please use #location ZIPCODE" % (lookup_location)
                 else:
                     return "Sorry, I don't know where/who that is"
                 
@@ -58,7 +58,7 @@ class WeatherCommand(ExplicitCommand):
         if weather is None:
             return "Sorry, I know who/where '%s' is, but I don't know the weather there." % lookup_location
         
-        if lookup_type == "SPECIFIED_LOCATION":
+        if lookup_type == "SPECIFIED_LOCATION" and isInt(lookup_location):
             self._chatbot.storeUserLocation(requestor, lookup_location)
             
         if lookup_type == "OTHER_USER_NAME":

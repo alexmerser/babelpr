@@ -58,13 +58,13 @@ class DistanceCommand(ExplicitCommand):
             
         location1 = self._chatbot.getUserLocation(person1)
         if location1 is None:
-            return "Sorry, I don't know where %s" % person1_missing_str
+            return "Sorry, I don't know where %s. I can be taught someone's location when they use #location ZIPCODE" % person1_missing_str
         if not isInt(location1):
             return "Sorry, I can only calculate distance between zips, and %s location is '%s'" % (person1_nonint, location1)
          
         location2 = self._chatbot.getUserLocation(person2)
         if location2 is None: 
-            return "Sorry, I don't know where %s" % person2_missing_str
+            return "Sorry, I don't know where %s. I can be taught someone's location when they use #location ZIPCODE" % person2_missing_str
         if not isInt(location2):
             return "Sorry, I can only calculate distance between zips, and %s location is '%s'" % (person2_nonint, location2)
         
