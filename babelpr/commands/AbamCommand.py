@@ -53,7 +53,7 @@ class AbamCommand(ExplicitCommand):
         items = data["data"]
         
         for item in items.itervalues():
-            if "Enchantment: " in item["name"]:
+            if "Enchantment: " in item["name"] or "Augment: " in item["name"]:
                 continue
             
             if "Boots" in item["tags"] and "from" in item and len(item["from"]) > 0:
