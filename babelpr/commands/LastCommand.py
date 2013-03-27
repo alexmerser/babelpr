@@ -1,10 +1,10 @@
-from babelpr.commands import ExplicitCommand
 from babelpr import Message
-from babelpr.chatbot import ChatBot
-from babelpr.LeagueOfLegends.Summoner import SummonerProfileLoadFailure,\
+from babelpr.LeagueOfLegends.KassadinSummoner import KassadinSummoner
+from babelpr.LeagueOfLegends.Summoner import SummonerProfileLoadFailure, \
     UnknownSummoner
-from babelpr.LeagueOfLegends.LolkingSummoner import LolkingSummoner
 from babelpr.LeagueOfLegends.SummonerMatchStats import SummonerMatchStats
+from babelpr.chatbot import ChatBot
+from babelpr.commands import ExplicitCommand
 
 class LastCommand(ExplicitCommand):
     
@@ -18,14 +18,14 @@ class LastCommand(ExplicitCommand):
     
     def processCommand(self, message, trigger, arguments):
         assert isinstance(message, Message.Message)
-        assert isinstance(self._chatbot, ChatBot)
+        #assert isinstance(self._chatbot, ChatBot)
         
         arg_parts = arguments.split(' ', 1)
         if len(arg_parts) != 1:
             return "Invalid syntax.  Usage: %s" % self.syntax
         
         try:
-            summoner = LolkingSummoner(arguments)
+            summoner = KassadinSummoner(arguments)
             last_match = summoner.getLastMatch()
         except UnknownSummoner:
             return "Unknown summoner: '%s'" % arguments
