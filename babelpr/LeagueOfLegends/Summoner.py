@@ -8,3 +8,6 @@ class Summoner(object):
     
     def getLastMatch(self):
         return None
+    
+    def getDivision(self):
+        return None

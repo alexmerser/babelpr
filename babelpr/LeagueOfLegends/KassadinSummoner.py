@@ -28,13 +28,33 @@ class KassadinSummoner(Summoner):
         if p is None:
             raise UnknownSummoner
         self.summoner_name = p.summoner_name
-        self._match_html = p.match_html
-        self._pbk = p.pbk        
+        self._pbk = p.pbk
         
         Summoner.__init__(self, p.summoner_name)
     
+    def getDivision(self):
+        season_url = "http://quickfind.kassad.in/lookup/season3?PBK=%s&regionProxy=na&summoner=%s" % (self._pbk, self.summoner_name)
+        season_json = getWebpage(season_url)
+        try:
+            season_data = json.loads(season_json)
+        except:
+            return None
+        
+        division = season_data['right'].split('<br> ')[1]
+        print season_data['right']
+        return division
+    
     def getLastMatch(self):
-        r = [m.groupdict() for m in self.lastmatch_re.finditer(self._match_html)]
+        match_url = "http://quickfind.kassad.in/lookup/match?PBK=%s&regionProxy=na&summoner=%s" % (self._pbk, self.summoner_name)
+        match_json = getWebpage(match_url)
+        try:
+            match_data = json.loads(match_json)
+        except:
+            return None
+        match_html = match_data['escaped_html']
+        
+        
+        r = [m.groupdict() for m in self.lastmatch_re.finditer(match_html)]
         
         if not r or len(r) == 0:
             return None
@@ -121,16 +141,8 @@ class KassadinSummoner(Summoner):
             return None
         summoner_name = lookup_data['name']
         
-        match_url = "http://quickfind.kassad.in/lookup/match?PBK=%s&regionProxy=na&summoner=%s" % (pbk, summoner_name)
-        match_json = getWebpage(match_url)
-        try:
-            match_data = json.loads(match_json)
-        except:
-            return None
-        match_html = match_data['escaped_html']
-        
-        response = collections.namedtuple('Response', ['summoner_name', 'match_html', 'pbk'])
-        return response(summoner_name, match_html, pbk)
+        response = collections.namedtuple('Response', ['summoner_name', 'pbk'])
+        return response(summoner_name, pbk)
     
     def isValidProfilePage(self, html):
         return True
