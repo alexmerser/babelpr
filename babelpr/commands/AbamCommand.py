@@ -19,6 +19,7 @@ class AbamCommand(ExplicitCommand):
         
         self.boots = []
         self.non_boots = []
+        self.item_blacklist = []
         
         self.loadItems('http://ddragon.leagueoflegends.com/cdn/0.301.3/data/en_US/item.json')
         
@@ -52,10 +53,35 @@ class AbamCommand(ExplicitCommand):
         data = json.loads(json_string)
         items = data["data"]
         
+        # hardcoded (yolo) list of items not usable in ABAM
+        # this is probably because they are not allowed in that game/map type
+        self.item_blacklist = [
+            "The Lightbringer",
+            "Wriggle's Lantern",
+            "Spirit of the Ancient Golem",
+            "Spirit of the Elder Lizard",
+            "Spirit of the Spectral Wraith",
+            "Ruby Sightstone",
+            "Ohmwrecker",
+            "The Bloodthirster",
+            "Blackfire Torch",
+            "Grez's Spectral Lantern",
+            "Odyn's Veil",
+            "game_item_displayname_2051",
+            "Sword of the Occult",
+            "Mejai's Soulstealer",
+            "Guardian Angel",
+            "Overlord's Bloodmail",
+            "Wooglet's Witchcap"
+        ]
+    
         for item in items.itervalues():
-            if "Enchantment: " in item["name"] or "Augment: " in item["name"]:
+            if item["name"] in self.item_blacklist:
                 continue
             
+            if "Enchantment: " in item["name"] or "Augment: " in item["name"]:
+                continue
+
             if "Boots" in item["tags"] and "from" in item and len(item["from"]) > 0:
                 self.boots.append(item["name"])
                 continue
