@@ -41,8 +41,13 @@ class KassadinSummoner(Summoner):
             return None
         
         division = season_data['right'].split('<br> ')[1]
-        print season_data['right']
-        return division
+        lp = ''
+        
+        if " LP," in season_data['left']:
+            lp = " (%s LP)" % season_data['left'].split(' LP,')[0]
+        
+        
+        return division+lp
     
     def getLastMatch(self):
         match_url = "http://quickfind.kassad.in/lookup/match?PBK=%s&regionProxy=na&summoner=%s" % (self._pbk, self.summoner_name)
