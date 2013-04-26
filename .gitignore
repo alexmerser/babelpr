@@ -1,5 +1,6 @@
 *.py[cod]
 
+babelpr/commands/databases/_user_locations.db
 config.json
 .project
 .pydevproject
