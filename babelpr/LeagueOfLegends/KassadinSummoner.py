@@ -12,10 +12,12 @@ import urllib
 class KassadinSummoner(Summoner):
     lastmatch_pattern = '<tr class="match_history_row.*?' + \
                         "<strong class='col_[^']+?'>(?P<win_or_loss>[^<]+?)</strong>.*?" + \
-                        '<td class="m_datetime"[^>]+?>[^<]+?<strong>(?P<map_and_queue>[^<]+?)</strong>[^<]+?<br>(?P<match_time>[^-]+?)-0700.*?' + \
-                        '<td class="m_playing_as">[^<]+?<span class="tooltip-hero" title="(?P<champion>[^"]+?)".*?' + \
+                        '<td class="m_datetime"[^>]+?>[^<]+?' + \
+                        '<strong>(?P<map_and_queue>[^<]+?)</strong>[^<]+?' + \
+                        '<br>as <strong>(?P<champion>[^<]+?)</strong>[^<]+?' + \
+                        '<br>(?P<match_time>[^-]+?)-0700.*?' + \
                         '<td class="m_kda centre">[^<]+?<span class="p_large0">(?P<kda>[^<]+?)</span>.*?' + \
-                        '<td class="m_lasthit centre">[^<]+?<span class="p_large0">(?P<cs>[^<]+?)</span>.*?' + \
+                        '"Total minion kills">=(?P<cs>[^<]+?)</abbr>t.*?' + \
                         '<td class="m_gold centre">[^<]+?<span class="p_large0">(?P<gold>[^<]+?)</span>.*?' + \
                         '</tr>.*'
     lastmatch_re = re.compile(lastmatch_pattern,re.MULTILINE|re.DOTALL)    
