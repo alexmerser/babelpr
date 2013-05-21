@@ -31,6 +31,22 @@ class IrcChatMedium(AbstractChatMedium):
                 
     def getOwnId(self):
         return self._config['bot_nick']
+    
+    def formatTunnelMessage(self, sender_nick, medium_alias, body):
+        #return AbstractChatMedium.formatTunnelMessage(self, sender_nick, medium_alias, body)
+        return "%(nick_color)s%(nick)s %(parens_color)s(%(medium_color)s%(medium)s%(parens_color)s)%(colon_color)s: %(body_color)s%(body)s" % {
+          'nick_color': self.getIrcColor(2),
+          'nick': sender_nick,
+          'parens_color': self.getIrcColor(1),
+          'medium_color': self.getIrcColor(9),
+          'medium': medium_alias,
+          'colon_color': self.getIrcColor(1),
+          'body_color': self.getIrcColor(1),
+          'body': body
+        }
+        
+    def getIrcColor(self, color_id):
+        return chr(3) + str(color_id)
             
     def getRoster(self):
         return {}

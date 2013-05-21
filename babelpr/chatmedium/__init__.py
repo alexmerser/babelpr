@@ -142,12 +142,15 @@ class AbstractChatMedium(object):
                 matching.append(channel)
         return matching
     
+    def formatTunnelMessage(self, sender_nick, medium_alias, body):
+        return "%s (%s): %s" % (sender_nick, medium_alias, body)
+    
     def relayTunnelMessage(self, tunnel_id, source_message):
         # ignore messages from the channel itself
         if source_message.channel_id == source_message.sender_id:
             return
         
-        body = "%s (%s): %s" % (source_message.sender_nick, source_message.medium_alias, source_message.body)
+        body = self.formatTunnelMessage(source_message.sender_nick, source_message.medium_alias, source_message.body)
         channels = self.getChannelsForTunnel(tunnel_id)
         for channel in channels:
             if channel != source_message.channel_id:
