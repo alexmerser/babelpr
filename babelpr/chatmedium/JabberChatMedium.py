@@ -104,6 +104,57 @@ class JabberChatMedium(AbstractChatMedium, ClientXMPP):
                 
     def getOwnId(self):
         return ('%s' % self._xmpp.boundjid).split('/')[0]
+    
+    
+    def getRosterInRoom(self, jid):
+        roster = {}
+        
+        rooms = self._xmpp.plugin['xep_0045'].rooms
+        print jid
+        for room_jid in rooms:
+            if room_jid != jid:
+                continue
+            
+            members = rooms[room_jid]
+            for member_id,member_data in members.iteritems():
+                channel_member_jid = "%s/%s" % (room_jid, member_id)
+                
+                #try to get the jid from the room's member record
+                if member_data.has_key('jid') and member_data['jid'] is not None and member_data['jid'] != '':
+                    jid = member_data['jid']
+                    
+                    # try to get a nick from that jid
+                    nick = self._xmpp.getNick(jid)
+                    
+                    if nick is None:
+                        # if we didn't get a nick, then try to get it from the channel ID 
+                        nick = self._xmpp.getNick(channel_member_jid)
+                    
+                    if nick is None:
+                        # if we still didn't get a nick, then fall back to the channel member_id
+                        nick = member_id
+                else:
+                    # no true JID found.  use the channel member JID instead
+                    # and try to parse a nick from it
+                    jid = channel_member_jid
+                    nick = self._xmpp.getNick(channel_member_jid)
+                        
+
+                # if we didn't get a nick, then just use the ID they provide to the channel
+                if nick is None or nick == channel_member_jid:
+                    nick = member_id
+                
+                if jid == self._xmpp.boundjid:
+                    continue
+                
+                roster[channel_member_jid] = {
+                    'name': nick,
+                    'special': False
+                }
+            
+            
+        return roster
+            
             
     def getRoster(self):
         roster = {}

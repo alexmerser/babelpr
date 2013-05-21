@@ -44,11 +44,11 @@ class GchatChatMedium(JabberChatMedium):
 
 
     def getRoster(self):
-        jabber_roster =  JabberChatMedium.getRoster(self)
+        jabber_roster =  JabberChatMedium.getRosterInRoom(self, self._last_group_channel)
         roster = {}
         
         for key,value in jabber_roster.iteritems():
-            new_key = ("%s" % key).split('/',1)[0]
+            new_key = ("%s" % key).split('/',1)[1]
             roster[new_key] = value
             
         return roster
