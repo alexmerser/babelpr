@@ -2,7 +2,7 @@ from babelpr.chatmedium import AbstractChatMedium
 from babelpr.logger import Logger
 from babelpr.Message import Message
 
-import irclib
+import irc.bot
 import time
 import string
 
@@ -18,7 +18,7 @@ class IrcChatMedium(AbstractChatMedium):
         while True:
             Logger.debug(self, "Starting IrcChat for '%s'" % self._alias)
             self._irc = IRCBot(self)
-            self._irc.my_connect()
+            self._irc.start()
             Logger.warning(self, "IrcChat loop for '%s' ended" % self._alias)
             time.sleep(10)
             
@@ -27,7 +27,10 @@ class IrcChatMedium(AbstractChatMedium):
         self._irc.connection.privmsg(message.channel_id, message.body)
         
     def getChannels(self):
-        return self._irc.channels
+        channels = []
+        for channel in self._irc.channels:
+            channels.append(str(channel))
+        return channels
                 
     def getOwnId(self):
         return self._config['bot_nick']
@@ -46,64 +49,55 @@ class IrcChatMedium(AbstractChatMedium):
         }
         
     def getIrcColor(self, color_id):
-        return chr(3) + str(color_id)
+        return chr(3) + str(color_id)# + ',0'
             
     def getRoster(self):
-        return {}
+        roster = {}
+        for chname, chobj in self._irc.channels.items():
+            users = chobj.users()
+            for user in users:
+                if(str(user)) != self.getOwnNick():
+                    roster[str(user)] = {
+                    'name': str(user),
+                    'special': False
+                }
+        return roster
     
     def onIrcMessage(self, message):
         self._chatbot.receiveMessage(message)
 
-class IRCBot(irclib.SimpleIRCClient):
+class IRCBot(irc.bot.SingleServerIRCBot):
     def __init__(self, chat_medium):
-        irclib.SimpleIRCClient.__init__(self)
+        config = chat_medium._config
+        irc.bot.SingleServerIRCBot.__init__(self, [(config['server'], 6667)], config['bot_nick'], config['bot_nick'])
         self._chat_medium = chat_medium
-        self._last_connect_time = time.time() - 1000
-        self.channels = []
-        
-    def my_connect(self):
-        config = self._chat_medium._config
-        
-        Logger.info(self._chat_medium, "IRC Bot Connecting  u:%s n:%s" % (config['bot_nick'], config['server']))
-        time_since_last_connect = time.time() - self._last_connect_time
-        if time_since_last_connect < 10:
-            time.sleep(10-time_since_last_connect)
-            
-        self._last_connect_time = time.time()
-        connected = False
-        while not connected:
-            try:
-                self.connect(config['server'], config['port'], config['bot_nick'])
-            except Exception, e:
-                Logger.info(self._chat_medium, "Could not connect to irc server: %s" % e)
-                time.sleep(30)
-            else:
-                connected = True
-                
-        Logger.info(self._chat_medium, "IRC Bot starting processing loop.")
-        self.start()
-        Logger.info(self._chat_medium, "Exiting my connection function.")
 
-    def on_welcome(self, connection, event):
+    def start(self):
+        Logger.info(self._chat_medium, "IRC Bot starting processing loop.")
+        irc.bot.SingleServerIRCBot.start(self)        
+        Logger.info(self._chat_medium, "Exiting my connection function.")
+        
+        
+    def on_nicknameinuse(self, c, e):
+        c.nick(c.get_nickname() + "_")        
+        
+        
+    def on_welcome(self, c, e):
         config = self._chat_medium._config
         
         Logger.info(self._chat_medium, "IRC Bot identifying with nickserv.")
         self.connection.privmsg("nickserv","identify %s" % config['password'])
         time.sleep(3)
         Logger.info(self._chat_medium, "Joining channels...")
-        for channel in config['channels']:
-            password = ""
-            Logger.info(self._chat_medium, "Joining channel: %s" % channel)
-            connection.join(channel + " " + password)
-            self.channels.append(channel)
-        Logger.info(self._chat_medium, "Finished joining channels.")
         
+        for channel in config['channels']:
+            Logger.info(self._chat_medium, "Joining channel: %s" % channel)
+            c.join(channel)
 
     def on_pubmsg(self, connection, event):
-        body = string.join(event.arguments(), " ")
-        sender = event.source()
-        sendern = sender[0:sender.find("!")]
-        channel = event.target()
+        body = string.join(event.arguments, " ")
+        sendern = event.source.nick
+        channel = event.target
         
         Logger.info(self._chat_medium, "Pubmsg: %s in %s said %s" % (sendern, channel, body))
         med = self._chat_medium
@@ -113,9 +107,8 @@ class IRCBot(irclib.SimpleIRCClient):
         
 
     def on_privmsg(self, connection, event):
-        body = string.join(event.arguments(), " ")
-        sender = event.source()
-        sendern = sender[0:sender.find("!")]
+        body = string.join(event.arguments, " ")
+        sendern = event.source.nick
         
         Logger.info(self._chat_medium, "Privmsg: %s said %s" % (sendern, body))
         med = self._chat_medium
