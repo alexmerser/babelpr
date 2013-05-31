@@ -10,7 +10,7 @@ import re
 import urllib
 
 class KassadinSummoner(Summoner):
-    lastmatch_pattern = '<tr class="match_history_row.*?' + \
+    lastmatch_pattern = '.*?<tr class="match_history_row.*?' + \
                         "<strong class='col_[^']+?'>(?P<win_or_loss>[^<]+?)</strong>.*?" + \
                         '<td class="m_datetime"[^>]+?>[^<]+?' + \
                         '<strong>(?P<map_and_queue>[^<]+?)</strong>[^<]+?' + \
@@ -19,7 +19,7 @@ class KassadinSummoner(Summoner):
                         '<td class="m_kda centre">[^<]+?<span class="p_large0">(?P<kda>[^<]+?)</span>.*?' + \
                         '"Total minion kills">=(?P<cs>[^<]+?)</abbr>t.*?' + \
                         '<td class="m_gold centre">[^<]+?<span class="p_large0">(?P<gold>[^<]+?)</span>.*?' + \
-                        '</tr>.*'
+                        '</tr>.*?'
     lastmatch_re = re.compile(lastmatch_pattern,re.MULTILINE|re.DOTALL)    
     
     pbk_pattern = 'name="PBK" value="(?P<pbk>[^"]+)"'            
@@ -51,7 +51,7 @@ class KassadinSummoner(Summoner):
         
         return division+lp
     
-    def getLastMatch(self):
+    def getLastMatch(self, skip_num=0):
         match_url = "http://quickfind.kassad.in/lookup/match?PBK=%s&regionProxy=na&summoner=%s" % (self._pbk, self.summoner_name)
         match_json = getWebpage(match_url)
         try:
@@ -59,14 +59,17 @@ class KassadinSummoner(Summoner):
         except:
             return None
         match_html = match_data['escaped_html']
+        print match_html
+        
         
         
         r = [m.groupdict() for m in self.lastmatch_re.finditer(match_html)]
+        #r2 = self.lastmatch_re.findall(match_html)
         
-        if not r or len(r) == 0:
+        if not r or len(r) < skip_num+1:
             return None
         
-        d = r[0]
+        d = r[skip_num]
         champion_name = d['champion']
         win = d['win_or_loss'] == 'WIN'
         game_type = d['map_and_queue']

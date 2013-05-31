@@ -24,7 +24,16 @@ class IrcChatMedium(AbstractChatMedium):
             
     def sendMessage(self, message):
         AbstractChatMedium.sendMessage(self, message)
-        self._irc.connection.privmsg(message.channel_id, message.body)
+        assert isinstance(message, Message)
+        lines = message.body.split('\n')
+        
+        MAX_LENGTH = 512-36
+        for line in lines:
+            chunks = [line[i:i+MAX_LENGTH] for i in xrange(0, len(line), MAX_LENGTH)]
+            for chunk in chunks:
+                chunk = chunk.strip()
+                if len(chunk) > 0:
+                    self._irc.connection.privmsg(message.channel_id, chunk)
         
     def getChannels(self):
         channels = []
@@ -56,8 +65,7 @@ class IrcChatMedium(AbstractChatMedium):
         for chname, chobj in self._irc.channels.items():
             users = chobj.users()
             for user in users:
-                if(str(user)) != self.getOwnNick():
-                    roster[str(user)] = {
+                roster[str(user)] = {
                     'name': str(user),
                     'special': False
                 }
@@ -119,4 +127,3 @@ class IRCBot(irc.bot.SingleServerIRCBot):
 
     def on_disconnect(self, connection, event):
         Logger.info(self._chat_medium, "Warning: IRC Has disconnected.")
-        self.my_connect()

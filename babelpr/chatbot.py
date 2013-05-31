@@ -20,10 +20,14 @@ class InvalidCommandClass(Exception): pass
 
 
 class ChatBot(object):
+    ROSTER_EVENT_ENTER = 1
+    ROSTER_EVENT_EXIT = 2
+    
     
     def __init__(self, config):
         self._config = {}
         self._mediums = {}
+        self._medium_rosters = {}
         self._threads = {}
         self._explicit_commands = {}
         self._implicit_commands = []
@@ -150,9 +154,76 @@ class ChatBot(object):
         Logger.info(self, "All mediums started")
         
         while True:
-            time.sleep(5)
+            time.sleep(1)
             self.checkMediums()
+            self.checkRosters()
 
+    def checkRosters(self):
+        if self._mediums is None:
+            return
+        
+        for medium_alias,medium in self._mediums.iteritems():
+            assert isinstance(medium, AbstractChatMedium)
+            roster = medium.getRoster()
+            if roster is None or len(roster) == 0:
+                continue
+            
+            old_roster = None
+            
+            if(medium_alias in self._medium_rosters):
+                old_roster = self._medium_rosters[medium_alias]
+
+            self._medium_rosters[medium_alias] = roster
+            
+            self.handleRosterChange(medium, old_roster, roster)
+            
+    def handleRosterChange(self, medium, old_roster, new_roster):
+        if old_roster is None or new_roster is None:
+            return
+        
+        left = []
+        for member_id,data in old_roster.iteritems():
+            if member_id not in new_roster and data['name'] not in left:
+                left.append(data['name'])
+                    
+        for name in left:
+            self.announceRosterChange(medium, name, self.ROSTER_EVENT_EXIT)
+
+
+        joined = []
+        for member_id,data in new_roster.iteritems():
+            if member_id not in old_roster and data['name'] not in joined:
+                joined.append(data['name'])
+                    
+        for name in joined:
+            self.announceRosterChange(medium, name, self.ROSTER_EVENT_ENTER)
+                
+                
+                
+    def announceRosterChange(self, source_medium, nickname, event_type):
+        verb = "joined" if event_type == self.ROSTER_EVENT_ENTER else "left"
+        message_body = "%s %s %s" % (nickname, verb, source_medium._alias)
+        
+        for medium_alias,medium in self._mediums.iteritems():
+            if  medium_alias == source_medium._alias:
+                continue
+            
+            channels = medium.getChannels()
+            
+            for channel in channels:
+                response_message = Message.Message(
+                    medium._alias, 
+                    medium.getMediumName(), 
+                    AbstractChatMedium.CHANNEL_TYPE_GROUP, 
+                    channel, 
+                    source_medium.getOwnId(), 
+                    source_medium.getOwnNick(), 
+                    message_body
+                )
+                #print response_message
+                self.enqueueMessage(response_message)
+        
+                
     def checkMediums(self):
         for medium,thread in self._threads.iteritems():
             if not thread.isAlive():

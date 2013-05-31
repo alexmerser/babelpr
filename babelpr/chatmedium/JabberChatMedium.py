@@ -110,7 +110,6 @@ class JabberChatMedium(AbstractChatMedium, ClientXMPP):
         roster = {}
         
         rooms = self._xmpp.plugin['xep_0045'].rooms
-        print jid
         for room_jid in rooms:
             if room_jid != jid:
                 continue
@@ -143,9 +142,6 @@ class JabberChatMedium(AbstractChatMedium, ClientXMPP):
                 # if we didn't get a nick, then just use the ID they provide to the channel
                 if nick is None or nick == channel_member_jid:
                     nick = member_id
-                
-                if jid == self._xmpp.boundjid:
-                    continue
                 
                 roster[channel_member_jid] = {
                     'name': nick,
@@ -191,9 +187,6 @@ class JabberChatMedium(AbstractChatMedium, ClientXMPP):
                 # if we didn't get a nick, then just use the ID they provide to the channel
                 if nick is None or nick == channel_member_jid:
                     nick = member_id
-                
-                if jid == self._xmpp.boundjid:
-                    continue
                 
                 roster[channel_member_jid] = {
                     'name': nick,
