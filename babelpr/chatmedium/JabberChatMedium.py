@@ -74,6 +74,15 @@ class JabberChatMedium(AbstractChatMedium, ClientXMPP):
             
         if msg_from_str == self.getOwnNick() or msg_from_str == "%s" % self._xmpp.boundjid:
             return None
+        
+        if msg['type'] == 'groupchat':
+            for room_jid in self._xmpp.plugin['xep_0045'].rooms:
+                room = self._xmpp.plugin['xep_0045'].rooms[room_jid]
+                for member_id,member_data in room.iteritems():
+                    if member_id == msg_from_str:
+                        if ("%s" % member_data.jid) == ("%s" % self._xmpp.boundjid):
+                            return None
+            
             
         from_nick = self._xmpp.getNick(msg_from)
         if from_nick is None:
@@ -129,6 +138,9 @@ class JabberChatMedium(AbstractChatMedium, ClientXMPP):
                         # if we didn't get a nick, then try to get it from the channel ID 
                         nick = self._xmpp.getNick(channel_member_jid)
                     
+                    if nick is None and ("%s" % jid) == ("%s" % self._xmpp.boundjid):
+                        nick = self.getOwnNick()
+                    
                     if nick is None:
                         # if we still didn't get a nick, then fall back to the channel member_id
                         nick = member_id
@@ -173,6 +185,9 @@ class JabberChatMedium(AbstractChatMedium, ClientXMPP):
                     if nick is None:
                         # if we didn't get a nick, then try to get it from the channel ID 
                         nick = self._xmpp.getNick(channel_member_jid)
+                    
+                    if nick is None and ("%s" % jid) == ("%s" % self._xmpp.boundjid):
+                        nick = self.getOwnNick()
                     
                     if nick is None:
                         # if we still didn't get a nick, then fall back to the channel member_id
