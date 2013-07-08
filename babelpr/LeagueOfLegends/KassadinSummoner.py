@@ -12,10 +12,9 @@ import urllib
 class KassadinSummoner(Summoner):
     lastmatch_pattern = '.*?<tr class="match_history_row.*?' + \
                         "<strong class='col_[^']+?'>(?P<win_or_loss>[^<]+?)</strong>.*?" + \
-                        '<td class="m_datetime"[^>]+?>[^<]+?' + \
                         '<strong>(?P<map_and_queue>[^<]+?)</strong>[^<]+?' + \
                         '<br>as <strong>(?P<champion>[^<]+?)</strong>[^<]+?' + \
-                        '<br>(?P<match_time>[^-]+?)-0700.*?' + \
+                        '<br><time [^<]+?>(?P<match_time>[^-]+?)-0700.*?' + \
                         '<td class="m_kda centre">[^<]+?<span class="p_large0">(?P<kda>[^<]+?)</span>.*?' + \
                         '"Total minion kills">=(?P<cs>[^<]+?)</abbr>t.*?' + \
                         '<td class="m_gold centre">[^<]+?<span class="p_large0">(?P<gold>[^<]+?)</span>.*?' + \
@@ -25,17 +24,25 @@ class KassadinSummoner(Summoner):
     pbk_pattern = 'name="PBK" value="(?P<pbk>[^"]+)"'            
     pbk_re = re.compile(pbk_pattern,re.MULTILINE|re.DOTALL)    
     
+    api_pattern = 'name="REQUIRED_QUICKFIND_API_KEY" value="(?P<api>[^"]+)"'            
+    api_re = re.compile(api_pattern,re.MULTILINE|re.DOTALL)    
+    
+    diamondprox_pattern = 'name="diamondprox" value="(?P<diamondprox>[^"]+)"'            
+    diamondprox_re = re.compile(diamondprox_pattern,re.MULTILINE|re.DOTALL)    
+    
     def __init__(self, summoner_name):
         p = self.fetchProfile(summoner_name)
         if p is None:
             raise UnknownSummoner
         self.summoner_name = p.summoner_name
         self._pbk = p.pbk
+        self._api = p.api
+        self._diamondprox = p.diamondprox
         
         Summoner.__init__(self, p.summoner_name)
     
     def getDivision(self):
-        season_url = "http://quickfind.kassad.in/lookup/season3?PBK=%s&regionProxy=na&summoner=%s" % (self._pbk, self.summoner_name)
+        season_url = "http://quickfind.kassad.in/lookup/season3?diamondprox=%s&REQUIRED_QUICKFIND_API_KEY=%s&PBK=%s&regionProxy=na&summoner=%s" % (self._diamondprox, self._api, self._pbk, self.summoner_name)
         season_json = getWebpage(season_url)
         try:
             season_data = json.loads(season_json)
@@ -52,16 +59,16 @@ class KassadinSummoner(Summoner):
         return division+lp
     
     def getLastMatch(self, skip_num=0):
-        match_url = "http://quickfind.kassad.in/lookup/match?PBK=%s&regionProxy=na&summoner=%s" % (self._pbk, self.summoner_name)
+        match_url = "http://quickfind.kassad.in/lookup/match?diamondprox=%s&REQUIRED_QUICKFIND_API_KEY=%s&PBK=%s&regionProxy=na&summoner=%s" % (self._diamondprox, self._api, self._pbk, self.summoner_name)
         match_json = getWebpage(match_url)
         try:
             match_data = json.loads(match_json)
         except:
             return None
         match_html = match_data['escaped_html']
+        
+        
         print match_html
-        
-        
         
         r = [m.groupdict() for m in self.lastmatch_re.finditer(match_html)]
         #r2 = self.lastmatch_re.findall(match_html)
@@ -86,6 +93,7 @@ class KassadinSummoner(Summoner):
         
         
         matchstats = SummonerMatchStats(self.summoner_name, champion_name, win, game_type, kills, deaths, assists, cs, gold, duration, how_long_ago)
+        print matchstats
         return matchstats        
     
     def pretty_date(self, time=False):
@@ -136,14 +144,24 @@ class KassadinSummoner(Summoner):
         search_html = getWebpage(search_url)
         
         r = self.pbk_re.search(search_html)
-        
         if not r:
             return None
-        
         d = r.groupdict()
         pbk = d['pbk']
         
-        lookup_url = "http://quickfind.kassad.in/lookup?PBK=%s&regionProxy=na&summoner=%s" % (pbk, search_name)
+        r = self.api_re.search(search_html)
+        if not r:
+            return None
+        d = r.groupdict()
+        api = d['api']
+        
+        r = self.diamondprox_re.search(search_html)
+        if not r:
+            return None
+        d = r.groupdict()
+        diamondprox = d['diamondprox']
+        
+        lookup_url = "http://quickfind.kassad.in/lookup?diamondprox=%s&REQUIRED_QUICKFIND_API_KEY=%s&PBK=%s&regionProxy=na&summoner=%s" % (diamondprox, api, pbk, search_name)
         lookup_json = getWebpage(lookup_url)
         try:
             lookup_data = json.loads(lookup_json)
@@ -151,8 +169,8 @@ class KassadinSummoner(Summoner):
             return None
         summoner_name = lookup_data['name']
         
-        response = collections.namedtuple('Response', ['summoner_name', 'pbk'])
-        return response(summoner_name, pbk)
+        response = collections.namedtuple('Response', ['summoner_name', 'pbk', 'diamondprox', 'api'])
+        return response(summoner_name, pbk, diamondprox, api)
     
     def isValidProfilePage(self, html):
         return True
