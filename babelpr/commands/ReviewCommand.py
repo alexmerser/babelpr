@@ -27,7 +27,8 @@ class ReviewCommand(ExplicitCommand):
             rotten = rotten.replace("\n","").replace("\r","")
             
             if rotten.find("Search Results for :") > -1:
-                rotten_regex0 = '<ul id="movie_results_ul".*?<a href="/m/(?P<url>[^"]+)'
+                rotten_regex0 = '<ul id="movie_results_ul".*?<a target="_top" href="/m/(?P<url>[^"]+)'
+                #rotten_regex0 = '<ul id="movie_results_ul".*?<a target="_top" href="/m/(?P<url>[^"]+)[^>]+>(?P<movie_name>[^<]+)</a>'
                 redirect = re.findall(rotten_regex0, rotten, re.MULTILINE)
                 if len(redirect) >= 1:
                     rotten = getWebpage("http://www.rottentomatoes.com/m/%s/" % redirect[0])
