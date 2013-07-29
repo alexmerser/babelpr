@@ -1,10 +1,13 @@
+import StringIO
+import cookielib
+import gzip
+import os
+import sys
+import re
 import sgmllib
 import socket
-import urllib2
-import cookielib
-import os
 import urllib
-import re
+import urllib2
 
 
 def stripHTML(html_string):
@@ -15,8 +18,6 @@ def stripHTML(html_string):
 def getWebpage(url, txdata=None):
     timeout = 10
     socket.setdefaulttimeout(timeout)
-    #user_agent = "Mozilla/5.0 Gecko/20070219 Firefox/2.0.0.2"
-    user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1309.0 Safari/537.17"
     COOKIEFILE = 'cookies.lwp'
     urlopen = urllib2.urlopen
     cj = cookielib.LWPCookieJar()
@@ -27,14 +28,31 @@ def getWebpage(url, txdata=None):
         opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
         urllib2.install_opener(opener)
 
-    txheaders =  {'User-agent' : user_agent}
+    txheaders =  {
+      'Accept':"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      'Accept-Encoding':"gzip,deflate,sdch",
+      'Accept-Language':"en-US,en;q=0.8",
+      'Cache-Control':"max-age=0",
+      'Connection':"keep-alive",
+      'User-agent' : "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.32 Safari/537.36"
+    }
     if not txdata is None:
         txdata = urllib.urlencode(txdata)
     try:
         req = Request(url, txdata, txheaders)
         handle = urlopen(req)
-        result = handle.read()
-    except:
+        
+        if handle.info().get('Content-Encoding') == 'gzip':
+            buf = StringIO.StringIO(handle.read())
+            f = gzip.GzipFile(fileobj=buf)
+            result = f.read()        
+        else:
+            result = handle.read()
+    except urllib2.HTTPError, e:
+        print e
+        result = ""
+    except Exception, e:
+        print e
         result = ""
         
     #debug_log(0,"Debug",result)
