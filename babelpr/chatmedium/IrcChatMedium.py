@@ -53,7 +53,7 @@ class IrcChatMedium(AbstractChatMedium):
           'medium_color': self.getIrcColor(9),
           'medium': medium_alias,
           'colon_color': self.getIrcColor(1),
-          'body_color': self.getIrcColor(1),
+          'body_color': chr(3),
           'body': body
         }
         
