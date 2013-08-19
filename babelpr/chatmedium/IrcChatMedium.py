@@ -46,7 +46,7 @@ class IrcChatMedium(AbstractChatMedium):
     
     def formatTunnelMessage(self, sender_nick, medium_alias, body):
         #return AbstractChatMedium.formatTunnelMessage(self, sender_nick, medium_alias, body)
-        return "%(nick_color)s%(nick)s %(parens_color)s(%(medium_color)s%(medium)s%(parens_color)s)%(colon_color)s: %(body_color)s%(body)s" % {
+        return "%(nick_color)s%(nick)s %(parens_color)s(%(medium_color)s%(medium)s%(parens_color)s)%(colon_color)s:%(body_color)s %(body)s" % {
           'nick_color': self.getIrcColor(2),
           'nick': sender_nick,
           'parens_color': self.getIrcColor(1),
