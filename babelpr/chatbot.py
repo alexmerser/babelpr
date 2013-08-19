@@ -4,7 +4,7 @@ from babelpr.chatmedium import AbstractChatMedium
 from threading import Thread
 import time
 from babelpr.commands import ImplicitCommand, ExplicitCommand
-import os
+import os,sys
 from babelpr.globals import BabelGlobals
 import re
 import sqlite3
@@ -222,16 +222,21 @@ class ChatBot(object):
                 )
                 #print response_message
                 self.enqueueMessage(response_message)
-        
-                
+
+
     def checkMediums(self):
-        for medium,thread in self._threads.iteritems():
-            if not thread.isAlive():
-                raise ChatMediumThreadDied(medium)
-            
-        for medium,instance in self._mediums.iteritems():
-            if not instance.isAlive():
-                raise ChatMediumInstanceDied(medium)
+        try:
+            for medium,thread in self._threads.iteritems():
+                if not thread.isAlive():
+                    raise ChatMediumThreadDied(medium)
+
+            for medium,instance in self._mediums.iteritems():
+                if not instance.isAlive():
+                    raise ChatMediumInstanceDied(medium)
+        except:
+            Logger.debug(self, "Thread or Instance died, restarting application")
+            python = sys.executable
+            os.execl(python, python, * sys.argv)
         
         # Logger.debug(self, "All mediums healthy")
         
