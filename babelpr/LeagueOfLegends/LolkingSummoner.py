@@ -1,9 +1,10 @@
-from babelpr.LeagueOfLegends.Summoner import Summoner,\
+from babelpr.LeagueOfLegends.Summoner import Summoner, \
     SummonerProfileLoadFailure, UnknownSummoner
-import urllib2
-import urllib
-import re
 from babelpr.LeagueOfLegends.SummonerMatchStats import SummonerMatchStats
+from babelpr.utils import stripHTML
+import re
+import urllib
+import urllib2
 
 class LolkingSummoner(Summoner):
     
@@ -11,7 +12,7 @@ class LolkingSummoner(Summoner):
         '<div style="font-size: 12px; font-weight: bold;">(?P<game_type>[^<]+)</div>' + '.*' + \
         '<div style="font-weight: bold; font-size: 16px; color: #......;">(?P<win_or_loss>[^<]+)<\/div>' + '.*' + \
         '<span style="border-bottom:[^>]+>(?P<how_long_ago>[^<]+)</span>' +  '.*' + \
-        '<strong>(?P<game_length>[^<]+)<\/strong>[^<]+<div class="match_details_cell_label">Game Length<\/div>' + '.*' + \
+        '\t~?<strong>(?P<game_length>[^\n]+)<\/strong>[^<]+<div class="match_details_cell_label">Game Length<\/div>' + '.*' + \
         '<strong>(?P<kills>\d+)</strong> <[^>]+>Kills' +  '.*' + \
         '<strong>(?P<deaths>\d+)</strong> <[^>]+>Deaths' +  '.*' + \
         '<strong>(?P<assists>\d+)</strong> <[^>]+>Assists' +  '.*' + \
@@ -19,34 +20,14 @@ class LolkingSummoner(Summoner):
         '<strong>(?P<cs>[^<]+)<\/strong><div class="match_details_cell_label">Minions<\/div>'                  
     lastmatch_re = re.compile(lastmatch_pattern,re.MULTILINE|re.DOTALL)
     
-
-    elo_pattern = '<li.*?' +\
-        '<div class="personal_ratings_heading">(?P<rating_type>[^<]+)<\/div>.*?' + \
-        '<div class="personal_ratings_rating">(?P<max_elo>[^<]+)</div>.*?' + \
-        '(<span [^>]+>(?P<wins>[^<]+)</span> Wins</div>.*?)?' + \
-        '(<span [^>]+>(?P<losses>[^<]+)</span> Losses</div>.*?)?' + \
-        '(<span [^>]+>(?P<current_elo>[^<]+)</span> Rating</div>.*?)?' + \
-        '<\/li'            
-    elo_re = re.compile(elo_pattern,re.MULTILINE|re.DOTALL)
-    
-    
     summoner_profile_id_cache = {}
     
     def __init__(self, summoner_name):
         self._profile_id = None
         self._profile_html = None
-        self._elos = None
-        
-        self._ranked_games = {
-            '5V5_TEAM': {'wins': None, 'losses': None},
-            '5V5_SOLO': {'wins': None, 'losses': None},
-            '3V3_TEAM': {'wins': None, 'losses': None}
-        }
-        
-        
         Summoner.__init__(self, summoner_name)
     
-    def getLastMatch(self):
+    def getLastMatch(self, skip_num=0):
         self.fetchProfile()
         
         topparts = self._profile_html.split('<!-- MATCH HISTORY -->', 1)
@@ -59,7 +40,7 @@ class LolkingSummoner(Summoner):
         if len(split_matches) == 1:
             return None
         
-        match_html = split_matches[1]
+        match_html = split_matches[1+skip_num]
         r = self.lastmatch_re.search(match_html)
         
         if not r:
@@ -74,57 +55,13 @@ class LolkingSummoner(Summoner):
         assists = d['assists']
         cs = d['cs']
         gold = d['gold']
-        duration = d['game_length']
+        duration = stripHTML(d['game_length'])
         how_long_ago = d['how_long_ago']
         
         matchstats = SummonerMatchStats(self.summoner_name, champion_name, win, game_type, kills, deaths, assists, cs, gold, duration, how_long_ago)
         
         return matchstats
     
-    def getElo(self, elo_type):
-        elos = self.getElos()
-        if elo_type in elos:
-            return elos[elo_type]
-        
-        return None
-    
-    def getWinsLosses(self, queue_type):
-        self.getElos()
-        queue_type = queue_type.upper()
-        if(self._ranked_games.has_key(queue_type)):
-            return self._ranked_games[queue_type]
-        return {'wins': None, 'losses': None} 
-
-    def getElos(self):
-        self.fetchProfile()
-        
-        if(self._elos is not None):
-            return self._elos
-        
-        elos = {}
-        for elo_type, type_id in self.ELO_TYPES.iteritems():
-            elos[elo_type] = None
-                    
-        for elo_match in [m.groupdict() for m in self.elo_re.finditer(self._profile_html)]:
-            if elo_match['rating_type'] == 'Team 3v3':
-                elos['ELO_3V3_TEAM_MAX'] = elo_match['max_elo']
-                elos['ELO_3V3_TEAM_CURRENT'] = elo_match['current_elo']
-                self._ranked_games['3V3_TEAM']['wins'] = elo_match['wins']
-                self._ranked_games['3V3_TEAM']['losses'] = elo_match['losses']
-            elif elo_match['rating_type'] == 'Team 5v5':
-                elos['ELO_5V5_TEAM_MAX'] = elo_match['max_elo']
-                elos['ELO_5V5_TEAM_CURRENT'] = elo_match['current_elo']
-                self._ranked_games['5V5_TEAM']['wins'] = elo_match['wins']
-                self._ranked_games['5V5_TEAM']['losses'] = elo_match['losses']
-            elif elo_match['rating_type'] == 'Solo 5v5':
-                elos['ELO_5V5_SOLO_MAX'] = elo_match['max_elo']
-                elos['ELO_5V5_SOLO_CURRENT'] = elo_match['current_elo']
-                self._ranked_games['5V5_SOLO']['wins'] = elo_match['wins']
-                self._ranked_games['5V5_SOLO']['losses'] = elo_match['losses']
-        
-        self._elos = elos
-        
-        return elos
     
     def fetchProfile(self):
         if self._profile_html is not None:

@@ -1,9 +1,8 @@
 from babelpr import Message
-from babelpr.LeagueOfLegends.KassadinSummoner import KassadinSummoner
+from babelpr.LeagueOfLegends.LolkingSummoner import LolkingSummoner
 from babelpr.LeagueOfLegends.Summoner import SummonerProfileLoadFailure, \
     UnknownSummoner
 from babelpr.LeagueOfLegends.SummonerMatchStats import SummonerMatchStats
-from babelpr.chatbot import ChatBot
 from babelpr.commands import ExplicitCommand
 import exceptions
 
@@ -35,7 +34,7 @@ class LastCommand(ExplicitCommand):
             skip_num = 0 
         
         try:
-            summoner = KassadinSummoner(summoner_name)
+            summoner = LolkingSummoner(summoner_name)
             last_match = summoner.getLastMatch(skip_num)
         except UnknownSummoner:
             return "Unknown summoner: '%s'" % summoner_name

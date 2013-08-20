@@ -11,17 +11,20 @@ class SummonerMatchStats(object):
         self.cs = cs
         self.gold = gold
         self.duration = duration
+        if(self.duration is not None and (len(self.duration) == 0 or self.duration.lower() == "unknown")):
+            self.duration = None
         self.how_long_ago = how_long_ago        
 
     def toString(self):
         if self.kills is None:
             return "Unknown"
         
-        message = ("%(summoner_name)s: %(victory_text)s %(game_type)s %(how_long_ago)s as %(champion)s. K/D/A was %(kills)s/%(deaths)s/%(assists)s with %(cs)s CS and %(gold)s") % {
+        message = ("%(summoner_name)s: %(victory_text)s %(game_type)s %(duration_text)s%(how_long_ago)s as %(champion)s. K/D/A was %(kills)s/%(deaths)s/%(assists)s with %(cs)s CS and %(gold)s") % {
             'summoner_name': self.summoner_name,
             'champion': self.champion,
             'how_long_ago': self.how_long_ago,
             'game_type': self.game_type,
+            'duration_text': "in %s " % self.duration if self.duration is not None else '',
             'kills': self.kills,
             'deaths': self.deaths,
             'assists': self.assists,
