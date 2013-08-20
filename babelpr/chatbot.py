@@ -225,6 +225,7 @@ class ChatBot(object):
 
 
     def checkMediums(self):
+        must_exit = False
         try:
             for medium,thread in self._threads.iteritems():
                 if not thread.isAlive():
@@ -237,7 +238,10 @@ class ChatBot(object):
             Logger.debug(self, "Thread or Instance died, restarting application")
             python = sys.executable
             os.execl(python, python, * sys.argv)
+            must_exit = True
         
+        if must_exit:
+            raise Exception("Exiting after application restart")
         # Logger.debug(self, "All mediums healthy")
         
     def enqueueMessage(self, message):
