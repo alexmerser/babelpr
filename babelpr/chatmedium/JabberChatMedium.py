@@ -115,7 +115,8 @@ class JabberChatMedium(AbstractChatMedium, ClientXMPP):
                 continue
             
             members = rooms[room_jid]
-            for member_id,member_data in members.iteritems():
+            member_data = members.iteritems()
+            for member_id,member_data in member_data:
                 channel_member_jid = "%s/%s" % (room_jid, member_id)
                 
                 #try to get the jid from the room's member record
@@ -160,7 +161,8 @@ class JabberChatMedium(AbstractChatMedium, ClientXMPP):
         
         for room_jid in rooms:
             members = rooms[room_jid]
-            for member_id,member_data in members.iteritems():
+            member_data = members.iteritems()
+            for member_id,member_data in member_data:
                 channel_member_jid = "%s/%s" % (room_jid, member_id)
                 
                 #try to get the jid from the room's member record
