@@ -1,10 +1,11 @@
+from babelpr.Message import Message
 from babelpr.chatmedium import AbstractChatMedium
 from babelpr.logger import Logger
-from babelpr.Message import Message
-
+import hashlib
 import irc.bot
-import time
 import string
+import time
+
 
 class IrcChatMedium(AbstractChatMedium):
     
@@ -47,7 +48,7 @@ class IrcChatMedium(AbstractChatMedium):
     def formatTunnelMessage(self, sender_nick, medium_alias, body):
         #return AbstractChatMedium.formatTunnelMessage(self, sender_nick, medium_alias, body)
         return "%(nick_color)s%(nick)s %(parens_color)s(%(medium_color)s%(medium)s%(parens_color)s)%(colon_color)s:%(body_color)s %(body)s" % {
-          'nick_color': self.getIrcColor(2),
+          'nick_color': self.getNickColor(sender_nick),
           'nick': sender_nick,
           'parens_color': self.getIrcColor(1),
           'medium_color': self.getIrcColor(9),
@@ -56,6 +57,16 @@ class IrcChatMedium(AbstractChatMedium):
           'body_color': chr(3),
           'body': body
         }
+        
+    def getNickColor(self, nick):
+        colors = [2,3,4,5,7,10,13,14]
+        num_partitions = len(colors)
+        index = self.getPartitionIndex(nick, num_partitions)
+        return self.getIrcColor(colors[index])
+    
+    def getPartitionIndex(self, string, num_partitions):
+        h = hashlib.md5(string)
+        return int(h.hexdigest(), 16) % num_partitions
         
     def getIrcColor(self, color_id):
         return chr(3) + str(color_id)# + ',0'
