@@ -68,8 +68,6 @@ class KassadinSummoner(Summoner):
         match_html = match_data['escaped_html']
         
         
-        print match_html
-        
         r = [m.groupdict() for m in self.lastmatch_re.finditer(match_html)]
         #r2 = self.lastmatch_re.findall(match_html)
         
@@ -92,8 +90,7 @@ class KassadinSummoner(Summoner):
         duration = None
         
         
-        matchstats = SummonerMatchStats(self.summoner_name, champion_name, win, game_type, kills, deaths, assists, cs, gold, duration, how_long_ago)
-        print matchstats
+        matchstats = SummonerMatchStats("kassad.in", self.summoner_name, champion_name, win, game_type, kills, deaths, assists, cs, gold, duration, how_long_ago)
         return matchstats        
     
     def pretty_date(self, time=False):

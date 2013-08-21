@@ -1,8 +1,6 @@
 from babelpr import Message
+from babelpr.LeagueOfLegends.KassadinSummoner import KassadinSummoner
 from babelpr.LeagueOfLegends.LolkingSummoner import LolkingSummoner
-from babelpr.LeagueOfLegends.Summoner import SummonerProfileLoadFailure, \
-    UnknownSummoner
-from babelpr.LeagueOfLegends.SummonerMatchStats import SummonerMatchStats
 from babelpr.commands import ExplicitCommand
 import exceptions
 
@@ -18,7 +16,6 @@ class LastCommand(ExplicitCommand):
     
     def processCommand(self, message, trigger, arguments):
         assert isinstance(message, Message.Message)
-        #assert isinstance(self._chatbot, ChatBot)
         
         arg_parts = arguments.split(',')
         if len(arg_parts) > 2:
@@ -33,22 +30,22 @@ class LastCommand(ExplicitCommand):
         else:
             skip_num = 0 
         
-        try:
-            summoner = LolkingSummoner(summoner_name)
-            last_match = summoner.getLastMatch(skip_num)
-        except UnknownSummoner:
-            return "Unknown summoner: '%s'" % summoner_name
-        except SummonerProfileLoadFailure:
-            return "Failed to load summoner profile for '%s'" % summoner_name
-        #except:
-        #    return "Error while attempting to load summoner '%s'" % arguments
-            
+        last_match = self.getLastMatch(KassadinSummoner(summoner_name), skip_num)
         if last_match is None:
-            return "No recent matches for '%s' found" % summoner_name
-
-        assert isinstance(last_match, SummonerMatchStats)
+            last_match = self.getLastMatch(LolkingSummoner(summoner_name), skip_num)
         
-        return last_match.toString()
+        if last_match is None:
+            return "No recent matches for '%s' could be found. Check the summoner name or try again later" % summoner_name
             
+        return last_match.toString()
+    
+    def getLastMatch(self, summoner, skip_num=0):
+        last_match = None
+        try: 
+            last_match = summoner.getLastMatch(skip_num)
+        except:
+            last_match = None
+            
+        return last_match
         
     

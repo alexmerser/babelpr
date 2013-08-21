@@ -58,7 +58,7 @@ class LolkingSummoner(Summoner):
         duration = stripHTML(d['game_length'])
         how_long_ago = d['how_long_ago']
         
-        matchstats = SummonerMatchStats(self.summoner_name, champion_name, win, game_type, kills, deaths, assists, cs, gold, duration, how_long_ago)
+        matchstats = SummonerMatchStats('lolking', self.summoner_name, champion_name, win, game_type, kills, deaths, assists, cs, gold, duration, how_long_ago)
         
         return matchstats
     
