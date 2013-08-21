@@ -59,7 +59,7 @@ class IrcChatMedium(AbstractChatMedium):
         }
         
     def getNickColor(self, nick):
-        colors = [2,3,4,5,7,10,13,14]
+        colors = [2,3,4,5,6,7,8,9,10,11,12,13,14,15]
         num_partitions = len(colors)
         index = self.getPartitionIndex(nick, num_partitions)
         return self.getIrcColor(colors[index])
