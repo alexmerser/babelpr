@@ -30,9 +30,15 @@ class LastCommand(ExplicitCommand):
         else:
             skip_num = 0 
         
-        last_match = self.getLastMatch(KassadinSummoner(summoner_name), skip_num)
+        try:
+            last_match = self.getLastMatch(KassadinSummoner(summoner_name), skip_num)
+        except:
+            last_match = None
         if last_match is None:
-            last_match = self.getLastMatch(LolkingSummoner(summoner_name), skip_num)
+            try:
+                last_match = self.getLastMatch(LolkingSummoner(summoner_name), skip_num)
+            except:
+                last_match = None
         
         if last_match is None:
             return "No recent matches for '%s' could be found. Check the summoner name or try again later" % summoner_name
