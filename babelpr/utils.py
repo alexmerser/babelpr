@@ -16,7 +16,7 @@ def stripHTML(html_string):
     return stripper.strip(html_string)
 
 def getWebpage(url, txdata=None):
-    timeout = 10
+    timeout = 5
     socket.setdefaulttimeout(timeout)
     COOKIEFILE = 'cookies.lwp'
     urlopen = urllib2.urlopen
@@ -40,7 +40,7 @@ def getWebpage(url, txdata=None):
         txdata = urllib.urlencode(txdata)
     try:
         req = Request(url, txdata, txheaders)
-        handle = urlopen(req)
+        handle = urlopen(req, None, timeout)
         
         if handle.info().get('Content-Encoding') == 'gzip':
             buf = StringIO.StringIO(handle.read())
