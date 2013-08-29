@@ -36,6 +36,8 @@ class GchatChatMedium(JabberChatMedium):
         
         self.setGroupChannel(message.channel_id)
         
+    def formatTunnelMessage(self, sender_nick, medium_alias, body):
+        return "*%s* (%s): %s" % (sender_nick, medium_alias, body)   
         
     def setGroupChannel(self, channel):
         if channel != self._last_group_channel:
