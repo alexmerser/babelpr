@@ -1,9 +1,6 @@
 from babelpr import Message
 from babelpr.LeagueOfLegends.KassadinSummoner import KassadinSummoner
-from babelpr.LeagueOfLegends.Summoner import SummonerProfileLoadFailure, \
-    UnknownSummoner
-from babelpr.LeagueOfLegends.SummonerMatchStats import SummonerMatchStats
-from babelpr.chatbot import ChatBot
+from babelpr.LeagueOfLegends.LolkingSummoner import LolkingSummoner
 from babelpr.commands import ExplicitCommand
 
 class DivisionCommand(ExplicitCommand):
@@ -20,27 +17,28 @@ class DivisionCommand(ExplicitCommand):
         assert isinstance(message, Message.Message)
         #assert isinstance(self._chatbot, ChatBot)
         
-        arg_parts = arguments.split(' ', 1)
-        if len(arg_parts) != 1:
+        arguments = arguments.strip()
+        if len(arguments) == 0:
             return "Invalid syntax.  Usage: %s" % self.syntax
         
+        division = None
         try:
-            summoner = KassadinSummoner(arguments)
+            summoner = LolkingSummoner(arguments)
             division = summoner.getDivision()
-        except UnknownSummoner:
-            return "Unknown summoner: '%s'" % arguments
-        except SummonerProfileLoadFailure:
-            return "Failed to load summoner profile for '%s'" % arguments
-        #except:
-        #    return "Error while attempting to load summoner '%s'" % arguments
+        except:
+            division = None
             
         if division is None:
-            if summoner is not None and len(summoner.summoner_name) > 0:
-                n = summoner.summoner_name
-            else:
-                n = arguments
-            return "No division for '%s' found" % n
+            try:
+                summoner = KassadinSummoner(arguments)
+                division = summoner.getDivision()
+            except:
+                division = None
+            
 
+        if division is None:
+            return "Unable to load/find division information for '%s'" % arguments
+            
         return "%s is in %s " % (summoner.summoner_name, division)
             
         

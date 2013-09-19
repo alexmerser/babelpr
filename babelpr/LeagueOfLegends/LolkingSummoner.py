@@ -20,12 +20,27 @@ class LolkingSummoner(Summoner):
         '<strong>(?P<cs>[^<]+)<\/strong><div class="match_details_cell_label">Minions<\/div>'                  
     lastmatch_re = re.compile(lastmatch_pattern,re.MULTILINE|re.DOTALL)
     
+    
+    division_pattern = '<div class="personal_ratings_heading">Solo 5v5</div>.*?<div class="personal_ratings_rating" [^>]+>(?P<metal>[^<]+)<[^>]+>(?P<tier>[^<]+).+?>(?P<lp>\d+) League Points'
+    division_re = re.compile(division_pattern,re.MULTILINE|re.DOTALL)
+    
     summoner_profile_id_cache = {}
     
     def __init__(self, summoner_name):
         self._profile_id = None
         self._profile_html = None
         Summoner.__init__(self, summoner_name)
+        
+    def getDivision(self):
+        self.fetchProfile()
+        r = self.division_re.search(self._profile_html)
+        
+        if not r:
+            return None
+        
+        d = r.groupdict()
+        return "%s %s (%s LP)" % (d['metal'], d['tier'], d['lp'])
+                
     
     def getLastMatch(self, skip_num=0):
         self.fetchProfile()
