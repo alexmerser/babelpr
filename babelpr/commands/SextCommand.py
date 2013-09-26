@@ -1,9 +1,9 @@
-from babelpr.commands import RandomDatabaseResponseExplicitCommand
+from babelpr.commands import RandomCSVResponseExplicitCommand
 
-class SextCommand(RandomDatabaseResponseExplicitCommand):
+class SextCommand(RandomCSVResponseExplicitCommand):
     
     def __init__(self, chatbot):
-        RandomDatabaseResponseExplicitCommand.__init__(self, chatbot)
+        RandomCSVResponseExplicitCommand.__init__(self, chatbot)
         
         self.triggers = ['sext', 'cyb0r', 'cyber', 'cybor']
         self.name = "sext"

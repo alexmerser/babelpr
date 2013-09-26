@@ -1,9 +1,10 @@
 from babelpr import Message
-import random
 from babelpr.globals import BabelGlobals
 from babelpr.logger import Logger
-import sqlite3
+import csv
+import random
 import re
+import sqlite3
 
 class Command(object):
     def __init__(self, chatbot):
@@ -121,4 +122,23 @@ class RandomDatabaseResponseExplicitCommand(RandomResponseExplicitCommand):
             connection.close()
         except:
             pass
+    
+class RandomCSVResponseExplicitCommand(RandomResponseExplicitCommand):
+    def __init__(self, chatbot):
+        super(RandomCSVResponseExplicitCommand, self).__init__(chatbot)
+        
+        self._csv_file = None
+        command = self.__class__.__name__
+        command = command.lower()[0:-7]
+        if(self._csv_file is None):
+            self._csv_file = BabelGlobals.location + '/babelpr/commands/databases/'+command+'.csv'
+        
+        try:
+            with open(self._csv_file, 'rb') as csvfile:
+                reader = csv.reader(csvfile)
+                self._responses = [elt[0] for elt in reader]
+            
+        except:
+            pass
+            
     

@@ -1,9 +1,9 @@
-from babelpr.commands import RandomDatabaseResponseExplicitCommand
+from babelpr.commands import RandomCSVResponseExplicitCommand
 
-class JackCommand(RandomDatabaseResponseExplicitCommand):
+class JackCommand(RandomCSVResponseExplicitCommand):
     
     def __init__(self, chatbot):
-        RandomDatabaseResponseExplicitCommand.__init__(self, chatbot)
+        RandomCSVResponseExplicitCommand.__init__(self, chatbot)
 
         self.triggers = ['jack']
         self.name = "jack"
