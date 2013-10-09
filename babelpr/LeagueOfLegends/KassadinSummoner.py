@@ -58,6 +58,9 @@ class KassadinSummoner(Summoner):
         
         return division+lp
     
+    def getRankedChampionStats(self, champion_name):
+        return None
+    
     def getLastMatch(self, skip_num=0):
         match_url = "http://quickfind.kassad.in/lookup/match?diamondprox=%s&REQUIRED_QUICKFIND_API_KEY=%s&PBK=%s&regionProxy=na&summoner=%s" % (self._diamondprox, self._api, self._pbk, self.summoner_name)
         match_json = getWebpage(match_url)

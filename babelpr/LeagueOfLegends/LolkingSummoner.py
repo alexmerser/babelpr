@@ -5,6 +5,7 @@ from babelpr.utils import stripHTML
 import re
 import urllib
 import urllib2
+from babelpr.LeagueOfLegends.SummonerChampionRankedStats import SummonerChampionRankedStats
 
 class LolkingSummoner(Summoner):
     
@@ -20,6 +21,15 @@ class LolkingSummoner(Summoner):
         '<strong>(?P<cs>[^<]+)<\/strong><div class="match_details_cell_label">Minions<\/div>'                  
     lastmatch_re = re.compile(lastmatch_pattern,re.MULTILINE|re.DOTALL)
     
+    ranked_champ_stats_pattern = '<tr>.*?' + \
+        '<a href="/champions/[^"]+?">(?P<champion>[^<]+?)</a></div>.*?' + \
+        '<td[^>]*?>(?P<wins>[^<]+?)</td>.*?' + \
+        '<td[^>]*?>(?P<losses>[^<]+?)</td>.*?' + \
+        '<td[^>]*?>(?P<kills>[^<]+?)/game</td>.*?' + \
+        '<td[^>]*?>(?P<deaths>[^<]+?)/game</td>.*?' + \
+        '<td[^>]*?>(?P<assists>[^<]+?)/game</td>.*?' + \
+        '<td[^>]*?>(?P<creeps>[^<]+?)/game</td>.*?' + \
+        '</tr>'
     
     division_pattern = '<div class="personal_ratings_heading">Solo 5v5</div>.*?<div class="personal_ratings_rating" [^>]+>(?P<metal>[^<]+)<[^>]+>(?P<tier>[^<]+).+?>(?P<lp>\d+) League Points'
     division_re = re.compile(division_pattern,re.MULTILINE|re.DOTALL)
@@ -41,6 +51,41 @@ class LolkingSummoner(Summoner):
         d = r.groupdict()
         return "%s %s (%s LP)" % (d['metal'], d['tier'], d['lp'])
                 
+    def getRankedChampionStats(self, champion_name):
+        self.fetchProfile()
+        
+        
+        topparts = self._profile_html.split('<!-- RANKED STATS -->', 1)
+        if len(topparts) == 1:
+            return None
+        
+        botparts = topparts[1].split('<!-- MATCH HISTORY -->', 1)
+        if len(botparts) == 1:
+            return None
+        
+        ranked_stats_html = botparts[0]
+        
+        champ_stats = SummonerChampionRankedStats('lolking', self.summoner_name, champion_name, None, None, None, None, None, None)
+        champion_name_search = champion_name.lower()
+        
+        for m in re.finditer(self.ranked_champ_stats_pattern, ranked_stats_html, re.MULTILINE|re.DOTALL):
+            d = m.groupdict(); 
+            if not champion_name_search in d['champion'].lower():
+                continue
+            
+            champion_name = d['champion'].title()
+            wins = d['wins']
+            losses = d['losses']
+            kills = d['kills']
+            deaths = d['deaths']
+            assists = d['assists']
+            creeps = d['creeps']
+            
+            champ_stats = SummonerChampionRankedStats('lolking', self.summoner_name, champion_name, wins, losses, kills, deaths, assists, creeps)
+            
+            break
+        
+        return champ_stats
     
     def getLastMatch(self, skip_num=0):
         self.fetchProfile()
