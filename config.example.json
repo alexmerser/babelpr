@@ -5,6 +5,8 @@
 		"^#(?P<trigger>[^ ]+) *(?P<arguments>.*)$",
 		"^(?P<trigger>[^ ]+): *(?P<arguments>.*)$"
 	],
+	
+	"wolfram_api_key": "get one at https://developer.wolframalpha.com/",
 
 	"ChatMediums": {
 	
