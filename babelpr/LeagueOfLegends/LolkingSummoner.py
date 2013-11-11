@@ -184,7 +184,7 @@ class LolkingSummoner(Summoner):
         return html
         
     def isValidProfilePage(self, html):
-        pattern = '<div style="font-size: 36px; line-height: 44px; white-space: nowrap;">(?P<summoner_name>[^<]+)</div>'
+        pattern = '<strong>(?P<summoner_name>[^<]+)</strong><br />'
         profile_re = re.compile(pattern)
         match = profile_re.search(html)
         if not match:
