@@ -50,7 +50,11 @@ class AbamCommand(ExplicitCommand):
         self.non_boots = []
         
         json_string = getWebpage(url)
-        data = json.loads(json_string)
+        try:
+            data = json.loads(json_string)
+        except:
+            return
+        
         items = data["data"]
         
         # hardcoded (yolo) list of items not usable in ABAM
