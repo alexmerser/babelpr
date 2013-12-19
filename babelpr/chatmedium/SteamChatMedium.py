@@ -48,7 +48,12 @@ class SteamChatMedium(AbstractChatMedium):
         Logger.debug(self, "Checking Steam Roster")
         roster = {}
         
-        friends = self.user.friends
+        try:
+            friends = self.user.friends
+        except:
+            Logger.debug(self, "Exception while trying to load Steam user friends/state!")
+            return self.last_roster
+        
         for friend in friends:
 
             if friend.state == 0:
@@ -58,13 +63,6 @@ class SteamChatMedium(AbstractChatMedium):
                     'name': str(friend),
                     'special': friend.currently_playing is not None,
                     'currently_playing': friend.currently_playing
-                }
-        
-        if self.user.state != 0:
-            roster[self.user.steamid] = {
-                    'name': str(self.user),
-                    'special': self.user.currently_playing is not None,
-                    'currently_playing': self.user.currently_playing
                 }
         
         self.last_roster = roster
