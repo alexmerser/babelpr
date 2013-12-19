@@ -50,6 +50,7 @@ class SteamChatMedium(AbstractChatMedium):
         
         friends = self.user.friends
         for friend in friends:
+
             if friend.state == 0:
                 continue
             
@@ -60,7 +61,7 @@ class SteamChatMedium(AbstractChatMedium):
                 }
         
         if self.user.state != 0:
-            roster[friend.steamid] = {
+            roster[self.user.steamid] = {
                     'name': str(self.user),
                     'special': self.user.currently_playing is not None,
                     'currently_playing': self.user.currently_playing
