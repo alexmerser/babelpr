@@ -108,15 +108,15 @@ class AbstractChatMedium(object):
         
         if old_roster is not None and new_roster is not None:
             left = []
-            for data in old_roster.itervalues():
-                if data['name'] not in new_roster and data['name'] not in left:
+            for player_id,data in old_roster.iteritems():
+                if player_id not in new_roster and data['name'] not in left:
                     left.append(data['name'])
                     roster_changes.append("%s left %s" % (data['name'], self._alias))
     
     
             joined = []
-            for data in new_roster.itervalues():
-                if data['name'] not in old_roster and data['name'] not in joined:
+            for player_id,data in old_roster.iteritems():
+                if player_id not in old_roster and data['name'] not in joined:
                     joined.append(data['name'])
                     roster_changes.append("%s joined %s" % (data['name'], self._alias))
                     

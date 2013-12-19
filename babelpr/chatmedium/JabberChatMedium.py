@@ -224,7 +224,16 @@ class JabberChatMedium(AbstractChatMedium, ClientXMPP):
                 continue            
             
             if nick is None:
-                nick = node_domain
+                if node_domain in self._xmpp.client_roster._jids:
+                    try:
+                        nick = self._xmpp.client_roster._jids[node_domain]['name']
+                    except:
+                        nick = None
+                else:
+                    nick = node_domain
+                    
+            if nick is None or len(nick) == 0:
+                continue
             
             roster[main_jid] = {
               'name': nick,
