@@ -20,6 +20,8 @@ class AbstractChatMedium(object):
         self._last_message_sent = time.time()
         self.MIN_DELAY_BETWEEN_MESSAGES = 0.5
         
+        self._roster_changes_last_roster = None
+        
         Logger.info(self, "%s %s initalizing..." % (alias, config['medium']))
         self._alias = alias
         self._config = config
@@ -98,6 +100,29 @@ class AbstractChatMedium(object):
     
     def getRoster(self):
         return {}
+    
+    def getRosterChanges(self):
+        roster_changes = []
+        new_roster = self.getRoster()
+        old_roster = self._roster_changes_last_roster
+        
+        if old_roster is not None and new_roster is not None:
+            left = []
+            for data in old_roster.itervalues():
+                if data['name'] not in new_roster and data['name'] not in left:
+                    left.append(data['name'])
+                    roster_changes.append("%s left %s" % (data['name'], self._alias))
+    
+    
+            joined = []
+            for data in new_roster.itervalues():
+                if data['name'] not in old_roster and data['name'] not in joined:
+                    joined.append(data['name'])
+                    roster_changes.append("%s joined %s" % (data['name'], self._alias))
+                    
+        self._roster_changes_last_roster = new_roster
+        return roster_changes
+        
     
     def getOwnId(self):
         return None

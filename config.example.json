@@ -9,6 +9,16 @@
 	"wolfram_api_key": "get one at https://developer.wolframalpha.com/",
 
 	"ChatMediums": {
+			
+		"steam": {
+			"medium": "steam",
+			"api_key": "abcd",
+			"SteamUser": "1234",
+			"note": "pip install requests",
+			"tunnels": {
+				"guild": [".*"]
+			}
+		},
 	
 		"gchat": {
 			"medium": "gchat",

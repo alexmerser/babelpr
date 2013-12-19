@@ -162,48 +162,14 @@ class ChatBot(object):
         if self._mediums is None:
             return
         
-        for medium_alias,medium in self._mediums.iteritems():
+        for medium in self._mediums.itervalues():
             assert isinstance(medium, AbstractChatMedium)
-            roster = medium.getRoster()
-            if roster is None or len(roster) == 0:
-                continue
             
-            old_roster = None
-            
-            if(medium_alias in self._medium_rosters):
-                old_roster = self._medium_rosters[medium_alias]
+            roster_changes = medium.getRosterChanges()
+            for roster_change in roster_changes:
+                self.announceRosterChange(medium, roster_change)
 
-            self._medium_rosters[medium_alias] = roster
-            
-            self.handleRosterChange(medium, old_roster, roster)
-            
-    def handleRosterChange(self, medium, old_roster, new_roster):
-        if old_roster is None or new_roster is None:
-            return
-        
-        left = []
-        for member_id,data in old_roster.iteritems():
-            if member_id not in new_roster and data['name'] not in left:
-                left.append(data['name'])
-                    
-        for name in left:
-            self.announceRosterChange(medium, name, self.ROSTER_EVENT_EXIT)
-
-
-        joined = []
-        for member_id,data in new_roster.iteritems():
-            if member_id not in old_roster and data['name'] not in joined:
-                joined.append(data['name'])
-                    
-        for name in joined:
-            self.announceRosterChange(medium, name, self.ROSTER_EVENT_ENTER)
-                
-                
-                
-    def announceRosterChange(self, source_medium, nickname, event_type):
-        verb = "joined" if event_type == self.ROSTER_EVENT_ENTER else "left"
-        message_body = "%s %s %s" % (nickname, verb, source_medium._alias)
-        
+    def announceRosterChange(self, source_medium, roster_change):
         for medium_alias,medium in self._mediums.iteritems():
             if  medium_alias == source_medium._alias:
                 continue
@@ -218,7 +184,7 @@ class ChatBot(object):
                     channel, 
                     source_medium.getOwnId(), 
                     source_medium.getOwnNick(), 
-                    message_body
+                    roster_change
                 )
                 #print response_message
                 self.enqueueMessage(response_message)
