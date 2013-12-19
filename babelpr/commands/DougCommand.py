@@ -7,6 +7,6 @@ class DougCommand(RandomResponseExplicitCommand):
         
         self.triggers = ['doug']
         self._responses = ['fuck you hank', 'lets invade', 'jinx jungle is legit, ok?', 'everyone hide in this bush']
-        self.name = "hank"
+        self.name = "doug"
         self.description = "Get on his level"
         self.syntax = "#doug"
