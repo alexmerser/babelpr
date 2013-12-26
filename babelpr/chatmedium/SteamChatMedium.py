@@ -3,6 +3,7 @@ from babelpr.Message import Message
 from babelpr.chatmedium import AbstractChatMedium
 from babelpr.logger import Logger
 import time
+import copy
 
 class SteamChatMedium(AbstractChatMedium):
     
@@ -72,7 +73,7 @@ class SteamChatMedium(AbstractChatMedium):
     def getRosterChanges(self):
         roster_changes = []
         new_roster = self.getRoster()
-        old_roster = self._roster_changes_last_roster
+        old_roster = copy.copy(self._roster_changes_last_roster)
         
         if old_roster is not None and new_roster is not None:
             left = []
