@@ -115,7 +115,7 @@ class AbstractChatMedium(object):
     
     
             joined = []
-            for player_id,data in old_roster.iteritems():
+            for player_id,data in new_roster.iteritems():
                 if player_id not in old_roster and data['name'] not in joined:
                     joined.append(data['name'])
                     roster_changes.append("%s joined %s" % (data['name'], self._alias))
