@@ -49,21 +49,20 @@ class SteamChatMedium(AbstractChatMedium):
         roster = {}
         
         try:
-            friends = self.user.friends
+            for friend in self.user.friends:
+
+                if friend.state == 0:
+                    continue
+                
+                roster[friend.steamid] = {
+                        'name': str(friend),
+                        'special': friend.currently_playing is not None,
+                        'currently_playing': friend.currently_playing
+                    }
         except:
             Logger.debug(self, "Exception while trying to load Steam user friends/state!")
             return self.last_roster
         
-        for friend in friends:
-
-            if friend.state == 0:
-                continue
-            
-            roster[friend.steamid] = {
-                    'name': str(friend),
-                    'special': friend.currently_playing is not None,
-                    'currently_playing': friend.currently_playing
-                }
         
         self.last_roster = roster
         self.last_roster_check_time = t
