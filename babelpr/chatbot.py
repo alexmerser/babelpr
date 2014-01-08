@@ -265,7 +265,10 @@ class ChatBot(object):
                 command = self._explicit_commands[trigger]
                 assert isinstance(command, ExplicitCommand)
                 command_match = True
-                response = command.processCommand(message, trigger, command_format['arguments'])
+                try:
+                    response = command.processCommand(message, trigger, command_format['arguments'])
+                except:
+                    response = "Error processing command: %s %s" % (sys.exc_info()[0].__name__, sys.exc_info()[1].message)
                 if response is not None:
                     return response
                 
