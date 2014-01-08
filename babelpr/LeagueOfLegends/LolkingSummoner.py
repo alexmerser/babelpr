@@ -13,7 +13,7 @@ class LolkingSummoner(Summoner):
         '<div style="font-size: 12px; font-weight: bold;">(?P<game_type>[^<]+)</div>' + '.*' + \
         '<div style="font-weight: bold; font-size: 16px; color: #......;">(?P<win_or_loss>[^<]+)<\/div>' + '.*' + \
         '<span style="border-bottom:[^>]+>(?P<how_long_ago>[^<]+)</span>' +  '.*' + \
-        '\t~?<strong>(?P<game_length>[^\n]+)<\/strong>[^<]+<div class="match_details_cell_label">Game Length<\/div>' + '.*' + \
+        '<strong>(?P<game_length>[^\n]+)<\/strong>[^<]+<div class="match_details_cell_label">Game Length<\/div>' + '.*' + \
         '<strong>(?P<kills>\d+)</strong> <[^>]+>Kills' +  '.*' + \
         '<strong>(?P<deaths>\d+)</strong> <[^>]+>Deaths' +  '.*' + \
         '<strong>(?P<assists>\d+)</strong> <[^>]+>Assists' +  '.*' + \
@@ -90,13 +90,7 @@ class LolkingSummoner(Summoner):
     def getLastMatch(self, skip_num=0):
         self.fetchProfile()
         
-        topparts = self._profile_html.split('<!-- MATCH HISTORY -->', 1)
-        if len(topparts) == 1:
-            return None
-        
-        
-        matches = topparts[1].split('<!-- MASTERIES -->', 1)[0]
-        split_matches = matches.split('<div class="match_details">')
+        split_matches = self._profile_html.split('<div class="match_details">')
         if len(split_matches) == 1:
             return None
         
@@ -184,7 +178,7 @@ class LolkingSummoner(Summoner):
         return html
         
     def isValidProfilePage(self, html):
-        pattern = '<strong>(?P<summoner_name>[^<]+)</strong><br />'
+        pattern = '<div id="summoner-titlebar-summoner-name">(?P<summoner_name>[^<]+)</div>'
         profile_re = re.compile(pattern)
         match = profile_re.search(html)
         if not match:
