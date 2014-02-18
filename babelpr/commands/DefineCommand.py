@@ -42,7 +42,10 @@ class DefineCommand(ExplicitCommand):
                 elif dictionary=="URBAN" or dictionary=="UD" or dictionary=="URBANDICTIONARY":
                     result = DefineCommand.UrbanDefine(args)
                     if result[0]:
-                        return "UrbanDictionary says '%s' means: %s" % (args, result[1])
+                        if result[1].lower() == args:
+                            return "UrbanDictionary says '%s' means: %s" % (args, result[2])
+                        else:
+                            return "UrbanDictionary's best match for '%s' is '%s': %s" % (args, result[1], result[2])
                     else:
                         return "UrbanDictionary doesn't know what '%s' means." % args
                 else:
@@ -58,7 +61,10 @@ class DefineCommand(ExplicitCommand):
                     else:
                         result = DefineCommand.UrbanDefine(args)
                         if result[0]:
-                            return "UrbanDictionary says '%s' means: %s" % (args, result[1])
+                            if result[1].lower() == args:
+                                return "UrbanDictionary says '%s' means: %s" % (args, result[2])
+                            else:
+                                return "UrbanDictionary's best match for '%s' is '%s': %s" % (args, result[1], result[2])
                         else:
                             return "I don't know what '%s' means." % args
     
@@ -124,17 +130,18 @@ class DefineCommand(ExplicitCommand):
         except:
             c = ""
     
-        ud_def_regex = """<div class="definition">(.+?)</div>"""
+        ud_def_regex = """<div class='word'>.*?<a .*?>(.+?)</a>.*?<div class='meaning'>(.+?)</div>"""
         c = re.findall(ud_def_regex, c, re.MULTILINE| re.DOTALL)
         if len(c) > 0:
-            c = stripHTML(c[0])
-            c = c.replace('\n',' ')
-            c = c.replace('  ',' ')
-            c = c.replace('  ',' ')
-            c = c.replace('  ',' ')
-            if len(c) > 300:
-                c = c[:300]+"..."
-            return [True,c]
+            word_result = stripHTML(c[0][0])
+            def_result = stripHTML(c[0][1])
+            def_result = def_result.replace('\n',' ')
+            def_result = def_result.replace('  ',' ')
+            def_result = def_result.replace('  ',' ')
+            def_result = def_result.replace('  ',' ')
+            if len(def_result) > 300:
+                def_result = def_result[:300]+"..."
+            return [True,word_result,def_result]
         else:
-            return [False,""]
+            return [False,None,None]
 
