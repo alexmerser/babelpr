@@ -1,6 +1,7 @@
 from babelpr import Message
 from babelpr.LeagueOfLegends.KassadinSummoner import KassadinSummoner
 from babelpr.LeagueOfLegends.LolkingSummoner import LolkingSummoner
+from babelpr.LeagueOfLegends.OpggSummoner import OpggSummoner
 from babelpr.commands import ExplicitCommand
 
 class DivisionCommand(ExplicitCommand):
@@ -22,19 +23,16 @@ class DivisionCommand(ExplicitCommand):
             return "Invalid syntax.  Usage: %s" % self.syntax
         
         division = None
-        try:
-            summoner = LolkingSummoner(arguments)
-            division = summoner.getDivision()
-        except:
-            division = None
-            
-        if division is None:
+        providers = [OpggSummoner, LolkingSummoner, KassadinSummoner]
+        for provider in providers:
             try:
-                summoner = KassadinSummoner(arguments)
+                summoner = provider(arguments)
                 division = summoner.getDivision()
             except:
                 division = None
-            
+
+            if division is not None:
+                break
 
         if division is None:
             return "Unable to load/find division information for '%s'" % arguments

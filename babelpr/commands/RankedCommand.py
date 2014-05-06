@@ -1,6 +1,7 @@
 from babelpr import Message
 from babelpr.LeagueOfLegends.KassadinSummoner import KassadinSummoner
 from babelpr.LeagueOfLegends.LolkingSummoner import LolkingSummoner
+from babelpr.LeagueOfLegends.OpggSummoner import OpggSummoner
 from babelpr.commands import ExplicitCommand
 import exceptions
 
@@ -24,28 +25,19 @@ class RankedCommand(ExplicitCommand):
         summoner_name = arg_parts[0].strip()        
         champion_name = arg_parts[1].strip()        
         
-        try:
-            ranked_stats = self.getRankedStats(KassadinSummoner(summoner_name), champion_name)
-        except:
-            ranked_stats = None
-        if ranked_stats is None:
+        ranked_stats = None
+        providers = [LolkingSummoner, KassadinSummoner]
+        for provider in providers:
             try:
-                ranked_stats = self.getRankedStats(LolkingSummoner(summoner_name), champion_name)
+                summoner = provider(arguments)
+                ranked_stats = summoner.getLastMatch(champion_name)
             except:
                 ranked_stats = None
-        
+
+            if ranked_stats is not None:
+                break
+
         if ranked_stats is None:
             return "No ranked stats for '%s' on '%s' could be found. Check the summoner and champion names, or try again later" % (summoner_name, champion_name)
             
         return ranked_stats.toString()
-    
-    def getRankedStats(self, summoner, champion_name):
-        ranked_stats = None
-        try: 
-            ranked_stats = summoner.getRankedChampionStats(champion_name)
-        except:
-            ranked_stats = None
-            
-        return ranked_stats
-        
-    

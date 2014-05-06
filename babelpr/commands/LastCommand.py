@@ -1,8 +1,9 @@
 from babelpr import Message
 from babelpr.LeagueOfLegends.KassadinSummoner import KassadinSummoner
 from babelpr.LeagueOfLegends.LolkingSummoner import LolkingSummoner
+from babelpr.LeagueOfLegends.OpggSummoner import OpggSummoner
 from babelpr.commands import ExplicitCommand
-import exceptions
+import exceptions, logging
 
 class LastCommand(ExplicitCommand):
     
@@ -30,28 +31,20 @@ class LastCommand(ExplicitCommand):
         else:
             skip_num = 0 
         
-        try:
-            last_match = self.getLastMatch(KassadinSummoner(summoner_name), skip_num)
-        except:
-            last_match = None
-        if last_match is None:
+        last_match = None
+        providers = [OpggSummoner, LolkingSummoner, KassadinSummoner]
+        for provider in providers:
             try:
-                last_match = self.getLastMatch(LolkingSummoner(summoner_name), skip_num)
+                summoner = provider(arg_parts[0])
+                last_match = summoner.getLastMatch(skip_num)
             except:
+                logging.exception("Provider exception in getLastMatch")
                 last_match = None
+
+            if last_match is not None:
+                break
         
         if last_match is None:
             return "No recent matches for '%s' could be found. Check the summoner name or try again later" % summoner_name
             
         return last_match.toString()
-    
-    def getLastMatch(self, summoner, skip_num=0):
-        last_match = None
-        try: 
-            last_match = summoner.getLastMatch(skip_num)
-        except:
-            last_match = None
-            
-        return last_match
-        
-    
