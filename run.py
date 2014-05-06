@@ -23,18 +23,14 @@ def run():
     
     if(config.has_key('LoggingLevel')):
         level = logging.DEBUG
-    logging.basicConfig(level=level,
-                            format='%(levelname)-8s %(message)s')        
+    logging.basicConfig(level=level, format='%(levelname)-8s %(message)s')        
     
     # initialize and start the ChatBot
-    client = ChatBot(config)
-    
     try:
+        client = ChatBot(config)
         client.start()
     except:
-        print "Exception in ChatBot:"
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        traceback.print_exception(exc_type, exc_value, exc_tb)
+        logging.exception("Exception in ChatBot")
         os._exit(1)
     
 # save the directory from which this script resides in

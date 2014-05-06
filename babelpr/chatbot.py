@@ -1,17 +1,13 @@
-from logger import Logger
+from threading import Thread
 from babelpr import chatmedium, Message
 from babelpr.chatmedium import AbstractChatMedium
-from threading import Thread
-import time
 from babelpr.commands import ImplicitCommand, ExplicitCommand
-import os,sys
 from babelpr.globals import BabelGlobals
-import re
-import sqlite3
+import time, os, sys, re, sqlite3, logging
 
 class InvalidConfigError(Exception): pass
 class NoMediumsConfigured(Exception): pass
-class UnknownChatMedium(Exception): pass
+class ChatMediumImportError(Exception): pass
 class InvalidChatMedium(Exception): pass
 class ChatMediumThreadDied(Exception): pass
 class ChatMediumInstanceDied(Exception): pass
@@ -33,7 +29,7 @@ class ChatBot(object):
         self._implicit_commands = []
         self._trigger_re = []
         
-        Logger.info(self, "Initializing...")
+        logging.info("Initializing...")
         
         # self.loadUserDb()
         self.loadConfig(config)
@@ -45,21 +41,21 @@ class ChatBot(object):
         try:
             self._user_db = sqlite3.connect(user_dbfile)
         except:
-            Logger.warning(self, "Unable to load user DB file")
+            logging.exception("Unable to load user DB file")
             self._user_db = None
             return
         
         try:
             c = self._user_db.cursor()
         except:
-            Logger.warning(self, "Unable to get user DB cursor in loadUserDb")
+            logging.exception("Unable to get user DB cursor in loadUserDb")
             return
         
         try:
             sql = 'create table if not exists locations (user_uniqid, location)'
             c.execute(sql)
         except:
-            Logger.warning(self, "Unable create user DB table in loadUserDb")
+            logging.exception("Unable create user DB table in loadUserDb")
         
         try:
             c.close()
@@ -94,12 +90,14 @@ class ChatBot(object):
             try:
                 importmodule = __import__("babelpr.chatmedium."+medium_classname, medium_classname)
             except ImportError:
-                raise UnknownChatMedium(config['medium'])
+                logging.exception("Error Importing Medium")
+                raise ChatMediumImportError(config['medium'])
             
             try:
                 chatmedium = getattr(importmodule, "chatmedium")
                 mediumclass = getattr(getattr(chatmedium, medium_classname), medium_classname)
             except AttributeError:
+                logging.exception("Invalid Chat Medium")
                 raise InvalidChatMedium(alias)
                 
             inst = mediumclass(self, alias, config)
@@ -127,12 +125,14 @@ class ChatBot(object):
         try:
             importmodule = __import__("babelpr.commands."+command_classname, command_classname)
         except ImportError:
+            logging.exception("Command Import Failure")
             raise CommandImportFailure(command_classname)
         
         try:
             commands = getattr(importmodule, "commands")
             command_class = getattr(getattr(commands, command_classname), command_classname)
         except AttributeError:
+            logging.exception("Invalid Command Class")
             raise InvalidCommandClass(command_classname)
             
         command = command_class(self)
@@ -144,14 +144,14 @@ class ChatBot(object):
         
     
     def start(self):
-        Logger.info(self, "Starting...")
+        logging.info("Starting...")
         for k,v in self._mediums.iteritems():
             assert isinstance(v, AbstractChatMedium)
             medium_thread = Thread(target=v.start, args=())
             medium_thread.start()
             self._threads[k] = medium_thread
             
-        Logger.info(self, "All mediums started")
+        logging.info("All mediums started")
         
         while True:
             time.sleep(1)
@@ -199,7 +199,7 @@ class ChatBot(object):
         for medium,instance in self._mediums.iteritems():
             if not instance.isAlive():
                 raise ChatMediumInstanceDied(medium)
-        # Logger.debug(self, "All mediums healthy")
+        # logging.debug("All mediums healthy")
         
     def enqueueMessage(self, message):
         self._mediums[message.medium_alias].enqueueMessage(message)
@@ -301,7 +301,7 @@ class ChatBot(object):
         try:
             cursor = self._user_db.cursor()
         except:
-            Logger.warning(self, "Unable to create user DB cursor in getUserLocation")
+            logging.exception("Unable to create user DB cursor in getUserLocation")
             self._user_db.close()
             return None
         
@@ -342,7 +342,7 @@ class ChatBot(object):
         try:
             cursor = self._user_db.cursor()
         except:
-            Logger.warning(self, "Unable to create user DB cursor in storeUserLocation")
+            logging.exception("Unable to create user DB cursor in storeUserLocation")
             return
         
         try:
