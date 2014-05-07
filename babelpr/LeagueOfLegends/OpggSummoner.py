@@ -12,7 +12,7 @@ class OpggSummoner(Summoner):
         '<span class="kill">(?P<kills>\d+)</span>' + '.*' + \
         '<span class="death">(?P<deaths>\d+)</span>' + '.*' + \
         '<span class="assist">(?P<assists>\d+)</span>' + '.*' + \
-        '<span class="cs">(?P<cs>\d+)</span>' + '.*' + \
+        '<span class="cs">(?P<cs>\d+)[^<]*?</span>' + '.*' + \
         '<span class="gold">(?P<gold>[^<]+)</span>'
     lastmatch_re = re.compile(lastmatch_pattern,re.MULTILINE|re.DOTALL)
     
