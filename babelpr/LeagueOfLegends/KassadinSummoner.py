@@ -30,19 +30,19 @@ class KassadinSummoner(Summoner):
     diamondprox_pattern = 'name="diamondprox" value="(?P<diamondprox>[^"]+)"'            
     diamondprox_re = re.compile(diamondprox_pattern,re.MULTILINE|re.DOTALL)    
     
-    def __init__(self, summoner_name):
+    def __init__(self, summoner_name, chatbot):
         p = self.fetchProfile(summoner_name)
         if p is None:
             raise UnknownSummoner
-        self.summoner_name = p.summoner_name
+        self._summoner_name = p._summoner_name
         self._pbk = p.pbk
         self._api = p.api
         self._diamondprox = p.diamondprox
         
-        Summoner.__init__(self, p.summoner_name)
+        Summoner.__init__(self, p._summoner_name, chatbot)
     
     def getDivision(self):
-        season_url = "http://quickfind.kassad.in/lookup/season3?diamondprox=%s&REQUIRED_QUICKFIND_API_KEY=%s&PBK=%s&regionProxy=na&summoner=%s" % (self._diamondprox, self._api, self._pbk, self.summoner_name)
+        season_url = "http://quickfind.kassad.in/lookup/season3?diamondprox=%s&REQUIRED_QUICKFIND_API_KEY=%s&PBK=%s&regionProxy=na&summoner=%s" % (self._diamondprox, self._api, self._pbk, self._summoner_name)
         season_json = getWebpage(season_url)
         try:
             season_data = json.loads(season_json)
@@ -62,7 +62,7 @@ class KassadinSummoner(Summoner):
         return None
     
     def getLastMatch(self, skip_num=0):
-        match_url = "http://quickfind.kassad.in/lookup/match?diamondprox=%s&REQUIRED_QUICKFIND_API_KEY=%s&PBK=%s&regionProxy=na&summoner=%s" % (self._diamondprox, self._api, self._pbk, self.summoner_name)
+        match_url = "http://quickfind.kassad.in/lookup/match?diamondprox=%s&REQUIRED_QUICKFIND_API_KEY=%s&PBK=%s&regionProxy=na&summoner=%s" % (self._diamondprox, self._api, self._pbk, self._summoner_name)
         match_json = getWebpage(match_url)
         try:
             match_data = json.loads(match_json)
@@ -93,7 +93,7 @@ class KassadinSummoner(Summoner):
         duration = None
         
         
-        matchstats = SummonerMatchStats("kassad.in", self.summoner_name, champion_name, win, game_type, kills, deaths, assists, cs, gold, duration, how_long_ago)
+        matchstats = SummonerMatchStats("kassad.in", self._summoner_name, champion_name, win, game_type, kills, deaths, assists, cs, gold, duration, how_long_ago)
         return matchstats        
     
     def pretty_date(self, time=False):

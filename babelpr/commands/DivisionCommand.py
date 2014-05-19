@@ -2,6 +2,7 @@ from babelpr import Message
 from babelpr.LeagueOfLegends.KassadinSummoner import KassadinSummoner
 from babelpr.LeagueOfLegends.LolkingSummoner import LolkingSummoner
 from babelpr.LeagueOfLegends.OpggSummoner import OpggSummoner
+from babelpr.LeagueOfLegends.RiotApiSummoner import RiotApiSummoner
 from babelpr.commands import ExplicitCommand
 
 class DivisionCommand(ExplicitCommand):
@@ -23,10 +24,10 @@ class DivisionCommand(ExplicitCommand):
             return "Invalid syntax.  Usage: %s" % self.syntax
         
         division = None
-        providers = [OpggSummoner, LolkingSummoner, KassadinSummoner]
+        providers = [RiotApiSummoner, OpggSummoner, LolkingSummoner, KassadinSummoner]
         for provider in providers:
             try:
-                summoner = provider(arguments)
+                summoner = provider(arguments, self._chatbot)
                 division = summoner.getDivision()
             except:
                 division = None
@@ -37,7 +38,7 @@ class DivisionCommand(ExplicitCommand):
         if division is None:
             return "Unable to load/find division information for '%s'" % arguments
             
-        return "%s is in %s " % (summoner.summoner_name, division)
+        return "%s is in %s " % (summoner.getSummonerName(), division)
             
         
     

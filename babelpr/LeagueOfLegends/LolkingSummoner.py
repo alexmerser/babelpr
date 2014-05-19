@@ -36,10 +36,10 @@ class LolkingSummoner(Summoner):
     
     summoner_profile_id_cache = {}
     
-    def __init__(self, summoner_name):
+    def __init__(self, summoner_name, chatbot):
         self._profile_id = None
         self._profile_html = None
-        Summoner.__init__(self, summoner_name)
+        Summoner.__init__(self, summoner_name, chatbot)
         
     def getDivision(self):
         self.fetchProfile()
@@ -65,7 +65,7 @@ class LolkingSummoner(Summoner):
         
         ranked_stats_html = botparts[0]
         
-        champ_stats = SummonerChampionRankedStats('lolking', self.summoner_name, champion_name, None, None, None, None, None, None)
+        champ_stats = SummonerChampionRankedStats('lolking', self._summoner_name, champion_name, None, None, None, None, None, None)
         champion_name_search = champion_name.lower()
         
         for m in re.finditer(self.ranked_champ_stats_pattern, ranked_stats_html, re.MULTILINE|re.DOTALL):
@@ -81,7 +81,7 @@ class LolkingSummoner(Summoner):
             assists = d['assists']
             creeps = d['creeps']
             
-            champ_stats = SummonerChampionRankedStats('lolking', self.summoner_name, champion_name, wins, losses, kills, deaths, assists, creeps)
+            champ_stats = SummonerChampionRankedStats('lolking', self._summoner_name, champion_name, wins, losses, kills, deaths, assists, creeps)
             
             break
         
@@ -112,7 +112,7 @@ class LolkingSummoner(Summoner):
         duration = stripHTML(d['game_length'])
         how_long_ago = d['how_long_ago']
         
-        matchstats = SummonerMatchStats('lolking', self.summoner_name, champion_name, win, game_type, kills, deaths, assists, cs, gold, duration, how_long_ago)
+        matchstats = SummonerMatchStats('lolking', self._summoner_name, champion_name, win, game_type, kills, deaths, assists, cs, gold, duration, how_long_ago)
         
         return matchstats
     
@@ -122,7 +122,7 @@ class LolkingSummoner(Summoner):
             return
         
         if self._profile_id is None:
-            self._profile_id = self.getProfileId(self.summoner_name)
+            self._profile_id = self.getProfileId(self._summoner_name)
             
         if self._profile_id is None:
             return
@@ -184,7 +184,7 @@ class LolkingSummoner(Summoner):
         if not match:
             return False
         
-        self.summoner_name = match.groupdict()['summoner_name']
+        self._summoner_name = match.groupdict()['summoner_name']
         
         return True
         

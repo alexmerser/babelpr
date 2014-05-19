@@ -1,6 +1,6 @@
 from babelpr.LeagueOfLegends.Summoner import Summoner, UnknownSummoner
 from babelpr.LeagueOfLegends.SummonerMatchStats import SummonerMatchStats
-from babelpr.utils import stripHTML, PrettyRelativeTime, getWebpage
+from babelpr.utils import PrettyRelativeTime, getWebpage
 import re, urllib, time, logging
 
 class OpggSummoner(Summoner):
@@ -22,11 +22,11 @@ class OpggSummoner(Summoner):
     
     summoner_id_cache = {}
     
-    def __init__(self, summoner_name):
+    def __init__(self, summoner_name, chatbot):
         logging.info("Constructing OpggSummoner")
         self._summoner_id = None
         self._profile_html = None
-        Summoner.__init__(self, summoner_name)
+        Summoner.__init__(self, summoner_name, chatbot)
         
     def getDivision(self):
         self.fetchProfile()
@@ -72,7 +72,7 @@ class OpggSummoner(Summoner):
         match_time = int(d['match_time'])
         how_long_ago = PrettyRelativeTime(time.time() - match_time)
         
-        matchstats = SummonerMatchStats('opgg', self.summoner_name, champion_name, win, game_type, kills, deaths, assists, cs, gold, duration, how_long_ago)
+        matchstats = SummonerMatchStats('opgg', self._summoner_name, champion_name, win, game_type, kills, deaths, assists, cs, gold, duration, how_long_ago)
         
         return matchstats
     
@@ -82,13 +82,13 @@ class OpggSummoner(Summoner):
             return
         
         if self._summoner_id is None:
-            self.summoner_name, self._summoner_id = self.getSummonerNameAndId(self.summoner_name)
+            self._summoner_name, self._summoner_id = self.getSummonerNameAndId(self._summoner_name)
             
         if self._summoner_id is None:
             return
         
         if self._profile_html is None:
-            self._profile_html = self.getProfileHtml(self._summoner_id, self.summoner_name)
+            self._profile_html = self.getProfileHtml(self._summoner_id, self._summoner_name)
 
     def getProfileUrl(self, summoner_name):
         return "http://na.op.gg/summoner/%s" % urllib.urlencode({'userName': summoner_name})
@@ -105,7 +105,7 @@ class OpggSummoner(Summoner):
     
     def getProfileHtml(self, summoner_id, summoner_name):
         #refresh the profile
-        json = getWebpage("http://na.op.gg/summoner/ajax/update.json/summonerId="+summoner_id)
+        getWebpage("http://na.op.gg/summoner/ajax/update.json/summonerId="+summoner_id)
 
         #fetch the refreshed profile
         html = getWebpage(self.getProfileUrl(summoner_name))

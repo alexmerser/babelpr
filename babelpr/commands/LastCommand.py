@@ -2,6 +2,7 @@ from babelpr import Message
 from babelpr.LeagueOfLegends.KassadinSummoner import KassadinSummoner
 from babelpr.LeagueOfLegends.LolkingSummoner import LolkingSummoner
 from babelpr.LeagueOfLegends.OpggSummoner import OpggSummoner
+from babelpr.LeagueOfLegends.RiotApiSummoner import RiotApiSummoner
 from babelpr.commands import ExplicitCommand
 import exceptions, logging
 
@@ -32,10 +33,10 @@ class LastCommand(ExplicitCommand):
             skip_num = 0 
         
         last_match = None
-        providers = [OpggSummoner, LolkingSummoner, KassadinSummoner]
+        providers = [RiotApiSummoner, OpggSummoner, LolkingSummoner, KassadinSummoner]
         for provider in providers:
             try:
-                summoner = provider(arg_parts[0])
+                summoner = provider(arg_parts[0], self._chatbot)
                 last_match = summoner.getLastMatch(skip_num)
             except:
                 logging.exception("Provider exception in getLastMatch")

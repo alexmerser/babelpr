@@ -1,19 +1,23 @@
-import StringIO
-import cookielib
-import gzip
-import os
-import sys
-import re
-import sgmllib
-import socket
-import urllib
-import urllib2
+import StringIO, cookielib, gzip, os, re, sgmllib, socket, urllib, urllib2, requests
 
 
 def stripHTML(html_string):
     stripper = Stripper()
     html_string = html_string.replace("&#39;","'").replace("&quot;","\"").replace("&lt;","<").replace("&gt;",">").replace("<br />"," ").replace("\n","").replace("\r","").replace("\t"," ").replace("<br>"," ").replace("<br/>"," ")
     return stripper.strip(html_string)
+
+def performRestApiGet(url):
+    try:
+        r = requests.get(url, timeout=5)
+        status_code = r.status_code
+        json = r.json()
+    except ValueError:
+        json = None
+    except requests.exceptions.Timeout:
+        status_code = 504
+        json = None
+
+    return status_code, json
 
 def getWebpage(url, txdata=None):
     timeout = 5

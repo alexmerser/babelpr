@@ -1,9 +1,7 @@
 from babelpr import Message
 from babelpr.LeagueOfLegends.KassadinSummoner import KassadinSummoner
 from babelpr.LeagueOfLegends.LolkingSummoner import LolkingSummoner
-from babelpr.LeagueOfLegends.OpggSummoner import OpggSummoner
 from babelpr.commands import ExplicitCommand
-import exceptions
 
 class RankedCommand(ExplicitCommand):
     
@@ -29,7 +27,7 @@ class RankedCommand(ExplicitCommand):
         providers = [LolkingSummoner, KassadinSummoner]
         for provider in providers:
             try:
-                summoner = provider(arguments)
+                summoner = provider(arguments, self._chatbot)
                 ranked_stats = summoner.getLastMatch(champion_name)
             except:
                 ranked_stats = None
