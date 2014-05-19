@@ -52,7 +52,7 @@ class RiotApiSummoner(Summoner):
             game['stats']['championsKilled'], 
             game['stats']['numDeaths'], 
             game['stats']['assists'], 
-            game['stats']['minionsKilled'], 
+            game['stats']['minionsKilled']+game['stats']['neutralMinionsKilled'], 
             self.getFriendlyGoldAmount(game['stats']['goldEarned']), 
             self.getFriendlyDuration(game['stats']['timePlayed']), 
             self.getFriendlyTimeAgo(game['createDate'])
