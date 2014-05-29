@@ -43,6 +43,12 @@ class RiotApiSummoner(Summoner):
             return None
 
         game = games[skip_num]
+        
+        if 'neutralMinionsKilled' in game['stats']:
+            nmk = game['stats']['neutralMinionsKilled']
+        else:
+            nmk = 0
+
         matchstats = SummonerMatchStats(
             'riotapi', 
             self._summoner_name, 
@@ -52,7 +58,7 @@ class RiotApiSummoner(Summoner):
             game['stats']['championsKilled'], 
             game['stats']['numDeaths'], 
             game['stats']['assists'], 
-            game['stats']['minionsKilled']+game['stats']['neutralMinionsKilled'], 
+            game['stats']['minionsKilled']+nmk, 
             self.getFriendlyGoldAmount(game['stats']['goldEarned']), 
             self.getFriendlyDuration(game['stats']['timePlayed']), 
             self.getFriendlyTimeAgo(game['createDate'])
