@@ -70,7 +70,7 @@ class RiotApiSummoner(Summoner):
         championId = str(championId)
         if not RiotApiSummoner.chamption_name_cache.has_key(championId):
             key = self.getApiKey()
-            endpoint = "https://prod.api.pvp.net/api/lol/static-data/na/v1.2/champion/%s?api_key=%s" % (urllib.quote_plus(championId), key)
+            endpoint = "https://na.api.pvp.net/api/lol/static-data/na/v1.2/champion/%s?api_key=%s" % (urllib.quote_plus(championId), key)
             response_code, response_object = performRestApiGet(endpoint)
             if(response_code != 200):
                 return "Unknown"
@@ -83,6 +83,9 @@ class RiotApiSummoner(Summoner):
         return PrettyRelativeTime(time.time() - createDate/1000) + " ago"
 
     def getFriendlyGameType(self, game):
+        if game['subType'] == 'NONE':
+            return game['gameMode'].replace('_', ' ').title()
+            
         return game['subType'].replace('_', ' ').title()
 
     def getFriendlyDuration(self, timePlayed):
@@ -106,7 +109,7 @@ class RiotApiSummoner(Summoner):
 
         if self._summoner_id is None:
             key = self.getApiKey()
-            endpoint = "https://prod.api.pvp.net/api/lol/na/v1.4/summoner/by-name/%s?api_key=%s" % (urllib.quote_plus(self._summoner_name), key)
+            endpoint = "https://na.api.pvp.net/api/lol/na/v1.4/summoner/by-name/%s?api_key=%s" % (urllib.quote_plus(self._summoner_name), key)
             response_code, response_object = performRestApiGet(endpoint)
             if(response_code != 200):
                 raise UnknownSummoner
@@ -120,7 +123,7 @@ class RiotApiSummoner(Summoner):
     def getRecentGames(self):
         key = self.getApiKey()
         summoner_id = self.getSummonerId()
-        endpoint = "https://prod.api.pvp.net/api/lol/na/v1.3/game/by-summoner/%s/recent?api_key=%s" % (summoner_id, key)
+        endpoint = "https://na.api.pvp.net/api/lol/na/v1.3/game/by-summoner/%s/recent?api_key=%s" % (summoner_id, key)
         response_code, response_object = performRestApiGet(endpoint)
         if(response_code != 200):
             raise UnknownSummoner
@@ -130,7 +133,7 @@ class RiotApiSummoner(Summoner):
     def getLeagueEntries(self):
         key = self.getApiKey()
         summoner_id = self.getSummonerId()
-        endpoint = "https://prod.api.pvp.net/api/lol/na/v2.4/league/by-summoner/%s/entry?api_key=%s" % (summoner_id, key)
+        endpoint = "https://na.api.pvp.net/api/lol/na/v2.4/league/by-summoner/%s/entry?api_key=%s" % (summoner_id, key)
         response_code, response_object = performRestApiGet(endpoint)
         if(response_code != 200):
             raise UnknownSummoner
