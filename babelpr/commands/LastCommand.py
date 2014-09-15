@@ -33,19 +33,20 @@ class LastCommand(ExplicitCommand):
             skip_num = 0 
         
         last_match = None
-        providers = [RiotApiSummoner, OpggSummoner, LolkingSummoner, KassadinSummoner]
+        providers = [RiotApiSummoner]
         for provider in providers:
             try:
                 summoner = provider(arg_parts[0], self._chatbot)
                 last_match = summoner.getLastMatch(skip_num)
             except:
                 logging.exception("Provider exception in getLastMatch")
+                print sys.exc_info()[0]
                 last_match = None
 
             if last_match is not None:
                 break
         
         if last_match is None:
-            return "No recent matches for '%s' could be found. Check the summoner name or try again later" % summoner_name
+            return "Recent match for '%s' was not found or was invalid. Check the summoner name or try again later" % summoner_name
             
         return last_match.toString()

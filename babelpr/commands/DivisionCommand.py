@@ -24,7 +24,7 @@ class DivisionCommand(ExplicitCommand):
             return "Invalid syntax.  Usage: %s" % self.syntax
         
         division = None
-        providers = [RiotApiSummoner, OpggSummoner, LolkingSummoner, KassadinSummoner]
+        providers = [RiotApiSummoner]
         for provider in providers:
             try:
                 summoner = provider(arguments, self._chatbot)

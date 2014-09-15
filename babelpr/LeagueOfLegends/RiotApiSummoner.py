@@ -21,7 +21,6 @@ class RiotApiSummoner(Summoner):
         tier = None
         lp = None
         for queue in le[sid]:
-            print queue['queue']
             if queue['queue'] == 'RANKED_SOLO_5x5':
                 tier = queue['tier'].capitalize() + " " + queue['entries'][0]['division']
                 lp = queue['entries'][0]['leaguePoints']
@@ -43,11 +42,16 @@ class RiotApiSummoner(Summoner):
             return None
 
         game = games[skip_num]
-        
+
         if 'neutralMinionsKilled' in game['stats']:
             nmk = game['stats']['neutralMinionsKilled']
         else:
             nmk = 0
+
+        if 'minionsKilled' in game['stats']:
+            mk = game['stats']['minionsKilled']
+        else:
+            mk = 0
 
         matchstats = SummonerMatchStats(
             'riotapi', 
@@ -58,7 +62,7 @@ class RiotApiSummoner(Summoner):
             game['stats']['championsKilled'], 
             game['stats']['numDeaths'], 
             game['stats']['assists'], 
-            game['stats']['minionsKilled']+nmk, 
+            mk+nmk, 
             self.getFriendlyGoldAmount(game['stats']['goldEarned']), 
             self.getFriendlyDuration(game['stats']['timePlayed']), 
             self.getFriendlyTimeAgo(game['createDate'])
