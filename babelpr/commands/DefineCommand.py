@@ -2,8 +2,10 @@ from babelpr.commands import ExplicitCommand
 from babelpr import Message
 from babelpr.chatbot import ChatBot
 from babelpr.utils import stripHTML, getWebpage
+import xml.etree.ElementTree as et
 import urllib
 import re
+import traceback
 
 class DefineCommand(ExplicitCommand):
     
@@ -23,12 +25,14 @@ class DefineCommand(ExplicitCommand):
         if args == "":
             return "Usage: #define word.  You may also specify either Merriam-Webster, Google, or UrbanDictionary as the source like this: #define mw#word, #define google#word, #define urban#word."
         else:
+            key = self._chatbot._config['mw_api_key']
+
             if args.find("#") >= 0:
                 dictionary = args.split("#")[0].upper()
                 args = args[len(dictionary)+1:]
                 
                 if dictionary=="MW" or dictionary=="M-W" or dictionary=="Merriam-Webster":
-                    result = DefineCommand.MWDefine(args)
+                    result = DefineCommand.MWDefine(args, key)
                     if result[0]:
                         return "Merriam-Webster says '%s' means: %s" % (args, result[1])
                     else:
@@ -51,7 +55,7 @@ class DefineCommand(ExplicitCommand):
                 else:
                     return "Unknown dictionary specified.  Please choose either Merriam-Webster, Google, or UrbanDictionary."
             else:
-                result = DefineCommand.MWDefine(args)
+                result = DefineCommand.MWDefine(args, key)
                 if result[0]:
                     return "Merriam-Webster says '%s' means: %s" % (args, result[1])
                 else:
@@ -69,32 +73,23 @@ class DefineCommand(ExplicitCommand):
                             return "I don't know what '%s' means." % args
     
     @classmethod               
-    def MWDefine(cls, word):
+    def MWDefine(cls, word, key):
         try:
-            c = getWebpage("http://www.merriam-webster.com/dictionary/%s" % urllib.quote(word))
+            url = "http://www.dictionaryapi.com/api/v1/references/collegiate/xml/%s?key=%s" % (urllib.quote(word), key)
+            c = getWebpage(url)
+            print c
+            root = et.fromstring(c)
+            answer = "".join(root.findall('.//dt')[0].itertext())
+            if answer.find(":") == 0:
+                answer = answer[1:]
+            answer = answer.strip()
+            if len(answer) > 150:
+                answer = answer[:150]+"..."
+
+            return [True, answer]
+
         except:
-            c = ""
-        #<b>1
-        valid = True
-        try:
-            c = c.split('<span class="ssens">',1)[1]
-            c = c.split('</span></div>')[0]
-            
-            if c.find('<span class="ssens">') >= 0:
-                c = c.split('<span class="ssens">')[0]
-                    
-            valid = len(c) > 1
-        except:
-            valid = False
-            
-        if valid:
-            c = stripHTML(c).strip()
-            if c.find(": ") == 0:
-                c = c[2:]
-            if len(c) > 150:
-                c = c[:150]+"..."
-            return [True, c]
-        else:
+            print traceback.format_exc()
             return [False,""]
 
 

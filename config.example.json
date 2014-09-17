@@ -8,6 +8,7 @@
 	
 	"wolfram_api_key": "get one at https://developer.wolframalpha.com/",
 	"riot_api_key": "get one at https://developer.riotgames.com/",
+    "mw_api_key": "get one at http://www.dictionaryapi.com/",
 
 	"ChatMediums": {
 			
