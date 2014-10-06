@@ -1,8 +1,9 @@
-A chat bot for people who plan ruses
+##A chat bot for people who plan ruses##
 
-sudo pip install irc
-sudo pip install sleekxmpp
-sudo pip install wolframalpha
-sudo pip install python-dateutil
-sudo pip install pytz
-sudo pip install BeautifulSoup4
+* pip install irc
+* pip install sleekxmpp
+* pip install wolframalpha
+* pip install python-dateutil
+* pip install pytz
+* pip install BeautifulSoup4
+* pip install requests
