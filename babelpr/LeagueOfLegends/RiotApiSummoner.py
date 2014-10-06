@@ -54,7 +54,7 @@ class RiotApiSummoner(Summoner):
             'riotapi', 
             self._summoner_name, 
             self.getChampionName(self.getOrElse(game, 'championId', '0')), 
-            ('stats' in stats) and stats['win'],
+            ('win' in stats) and stats['win'],
             self.getFriendlyGameType(game), 
             self.getOrElse(stats, 'championsKilled', '0'),
             self.getOrElse(stats, 'numDeaths', '0'),
