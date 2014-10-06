@@ -42,36 +42,36 @@ class RiotApiSummoner(Summoner):
             return None
 
         game = games[skip_num]
-
-        if 'neutralMinionsKilled' in game['stats']:
-            nmk = game['stats']['neutralMinionsKilled']
-        else:
-            nmk = 0
-
-        if 'minionsKilled' in game['stats']:
-            mk = game['stats']['minionsKilled']
-        else:
-            mk = 0
+        if 'stats' not in game:
+            return None
+            
+        stats = game['stats']
+        print game['championId']
+        print self.getOrElse(game, 'championId', '0')
+        print self.getChampionName(self.getOrElse(game, 'championId', '0'))
 
         matchstats = SummonerMatchStats(
             'riotapi', 
             self._summoner_name, 
-            self.getChampionName(game['championId']), 
-            game['stats']['win'], 
+            self.getChampionName(self.getOrElse(game, 'championId', '0')), 
+            self.getOrElse(stats, 'win', 'unknown'),
             self.getFriendlyGameType(game), 
-            game['stats']['championsKilled'], 
-            game['stats']['numDeaths'], 
-            game['stats']['assists'], 
-            mk+nmk, 
-            self.getFriendlyGoldAmount(game['stats']['goldEarned']), 
-            self.getFriendlyDuration(game['stats']['timePlayed']), 
-            self.getFriendlyTimeAgo(game['createDate'])
+            self.getOrElse(stats, 'championsKilled', '0'),
+            self.getOrElse(stats, 'numDeaths', '0'),
+            self.getOrElse(stats, 'assists', '0'),
+            int(self.getOrElse(stats, 'neutralMinionsKilled', '0')) + int(self.getOrElse(stats, 'minionsKilled', '0')),
+            self.getFriendlyGoldAmount(self.getOrElse(stats, 'goldEarned', '0')), 
+            self.getFriendlyDuration(self.getOrElse(stats, 'timePlayed', '0')), 
+            self.getFriendlyTimeAgo(self.getOrElse(game, 'createDate', '0'))
         )
         
         return matchstats
 
+    def getOrElse(self, source, key, defaultValue):
+        return str(source[key]) if key in source else defaultValue
+
     def getChampionName(self, championId):
-        championId = str(championId)
+        championId = str(int(championId))
         if not RiotApiSummoner.chamption_name_cache.has_key(championId):
             key = self.getApiKey()
             endpoint = "https://na.api.pvp.net/api/lol/static-data/na/v1.2/champion/%s?api_key=%s" % (urllib.quote_plus(championId), key)
@@ -84,19 +84,31 @@ class RiotApiSummoner(Summoner):
         return RiotApiSummoner.chamption_name_cache[championId]
 
     def getFriendlyTimeAgo(self, createDate):
+        createDate = int(createDate)
+        if createDate == 0:
+            return "some time ago"
+
         return PrettyRelativeTime(time.time() - createDate/1000) + " ago"
 
     def getFriendlyGameType(self, game):
-        if game['subType'] == 'NONE':
-            return game['gameMode'].replace('_', ' ').title()
+        subType = self.getOrElse(game, 'subType', 'NONE')
+        gameMode = self.getOrElse(game, 'gameMode', 'Unknown Game Mode')
+
+        if subType == 'NONE':
+            return gameMode.replace('_', ' ').title()
             
-        return game['subType'].replace('_', ' ').title()
+        return subType.replace('_', ' ').title()
 
     def getFriendlyDuration(self, timePlayed):
+        timePlayed = int(timePlayed)
+        if timePlayed == 0:
+            return "unknown"
+
         mins = int(timePlayed / 60)
         return "%s mins" % mins
 
     def getFriendlyGoldAmount(self, gold):
+        gold = int(gold)
         if gold < 1000:
             gold_str = str(gold)
         else:
