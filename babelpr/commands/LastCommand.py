@@ -4,7 +4,7 @@ from babelpr.LeagueOfLegends.LolkingSummoner import LolkingSummoner
 from babelpr.LeagueOfLegends.OpggSummoner import OpggSummoner
 from babelpr.LeagueOfLegends.RiotApiSummoner import RiotApiSummoner
 from babelpr.commands import ExplicitCommand
-import exceptions, logging
+import exceptions, logging, sys
 
 class LastCommand(ExplicitCommand):
     
